@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pandas>=2.2,<3
+numpy>=2.2,<3
+plotly
+openpyxl
+httpx
+itsdangerous

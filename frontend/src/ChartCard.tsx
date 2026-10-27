@@ -1,0 +1,11 @@
+import { memo } from 'react';
+import { CircleAlert, Columns3 } from 'lucide-react';
+import Plot from './Plot';
+import type { Chart } from './types';
+export const chartLabels: Record<string, string> = {
+  histogram: '直方图', bar: '类别频数', scatter: '散点图', heatmap: '相关性热力图', box: '箱线图', pie: '占比', line: '时间趋势', missing: '完整性', missingness: '字段缺失率', grouped_bar: '分组对比', correlation: '相关性',
+  ecdf: '累积分布', qq: '正态 Q–Q', qqplot: '正态 Q–Q', violin: '小提琴图', missing_pattern: '缺失模式', missing_patterns: '缺失模式', completeness: '字段完整性', missing_cooccurrence: '缺失共现', outlier_rate: '异常比例', concentration: '类别集中度', group_comparison: '分组对比', time_volume: '时间记录量', target_association: '目标关联', target_concentration: '目标集中度', target_bins: '目标分箱', target_group_gap: '目标组间差异', missing_correlation: '缺失关联', outlier: '异常值', outliers: '异常值', pareto: '帕累托分布', cardinality: '基数', scatter_matrix: '散点矩阵', spearman: 'Spearman 秩相关', grouped_box: '分组箱线图', grouped_distribution: '分组分布', crosstab: '交叉分布', target: '目标分析', time: '时间趋势', timeseries: '时间序列', time_coverage: '时间覆盖', categorical: '类别构成',
+};
+export default memo(function ChartCard({ chart, onField }: { chart: Chart; onField?: (field: string) => void }) {
+  return <article className={`card chart-card ${chart.wide ? 'chart-wide' : ''}`}><div className="chart-heading"><div><h3>{chart.title}</h3><p>{chart.description}</p></div><span className="chart-type">{chartLabels[chart.type] || '统计图表'}</span></div><Plot chart={chart}/>{(chart.fields?.length || chart.sample_notes?.length) ? <div className="chart-context">{chart.fields && chart.fields.length > 0 && <div className="chart-fields"><Columns3 size={12} aria-hidden="true"/>{chart.fields.slice(0,4).map(field => onField ? <button type="button" key={field} onClick={() => onField(field)} title={`筛选字段：${field}`}>{field}</button> : <span key={field}>{field}</span>)}{chart.fields.length > 4 && <details className="chart-field-overflow"><summary>另 {chart.fields.length-4} 个字段</summary><div>{chart.fields.slice(4).map(field => onField ? <button type="button" key={field} onClick={() => onField(field)}>{field}</button> : <span key={field}>{field}</span>)}</div></details>}</div>}{chart.sample_notes?.map((note, index) => <p key={index}><CircleAlert size={12} aria-hidden="true"/><span>{note}</span></p>)}</div> : null}</article>;
+});

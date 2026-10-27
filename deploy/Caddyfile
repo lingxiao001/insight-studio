@@ -1,0 +1,15 @@
+# Template: render with deploy/render-caddy.py --site-url https://your.domain.example.
+# Caddy manages HTTPS certificates and HTTP-to-HTTPS redirection automatically.
+__SITE_HOST__ {
+    encode zstd gzip
+    request_body {
+        max_size 55MB
+    }
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy same-origin
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    }
+    reverse_proxy 127.0.0.1:8108
+}

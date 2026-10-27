@@ -1,0 +1,13 @@
+Insight Studio
+Copyright (C) 2026 Insight Studio contributors
+
+The original application code and project documentation are made available
+under GNU Affero General Public License version 3 only (AGPL-3.0-only).
+See LICENSE for the complete license text.
+
+Third-party libraries, unmodified vendored packages, datasets and their
+notices retain their respective licenses. See THIRD_PARTY_NOTICES.md.
+
+This public source release is a sanitized snapshot. It excludes deployment
+credentials, private infrastructure details, account databases, uploaded
+records, internal operational history and previous private Git history.

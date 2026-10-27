@@ -1,0 +1,29 @@
+[Unit]
+Description=Insight Studio data analysis service
+After=network.target
+
+[Service]
+Type=simple
+User=insight-studio
+Group=insight-studio
+WorkingDirectory=/srv/insight-studio/current/backend
+EnvironmentFile=/srv/insight-studio/shared/.env
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/srv/insight-studio/current/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8108 --workers 1 --proxy-headers --forwarded-allow-ips=127.0.0.1
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/srv/insight-studio/shared
+MemoryMax=2200M
+CPUQuota=250%
+TasksMax=128
+LimitNOFILE=8192
+
+[Install]
+WantedBy=multi-user.target

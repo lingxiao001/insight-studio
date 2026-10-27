@@ -1,0 +1,32 @@
+name: insight-studio
+services:
+  app:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATA_DIR: /data
+      STATIC_DIR: /app/static
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD for initial admin creation}
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://openrouter.ai/api/v1}
+      LLM_MODEL: ${LLM_MODEL:-deepseek/deepseek-v4-pro-0813}
+      LLM_PROVIDER_ONLY: ${LLM_PROVIDER_ONLY:-sail-research/fp4}
+      LLM_INPUT_PER_MILLION_USD: ${LLM_INPUT_PER_MILLION_USD:-0.45}
+      LLM_OUTPUT_PER_MILLION_USD: ${LLM_OUTPUT_PER_MILLION_USD:-0.8}
+    volumes:
+      - analysis-data:/data
+    # Put a domain-configured HTTPS reverse proxy in front of this loopback port.
+    ports:
+      - "127.0.0.1:8108:8108"
+    mem_limit: 2200m
+    cpus: 2.5
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+volumes:
+  analysis-data:
