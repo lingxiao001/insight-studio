@@ -127,10 +127,16 @@ def brief_markdown(brief):
     if not brief:
         return []
     lines = ["## 先看结论", "", md_text(brief["answer"]), ""]
+    if brief.get("question_answers"):
+        lines += ["### 对问题逐项回答", ""]
+        for item in brief["question_answers"]:
+            lines += ["#### " + md_text(item["question"]), "", md_text(item["answer"]), "",
+                      md_text(item["explanation"]), "", "依据：" + md_text(item["evidence"]), "",
+                      "解释边界：" + md_text(item["caveat"]), "", "下一步：" + md_text(item["next_step"]), ""]
     for item in brief["findings"]:
         lines += ["### " + md_text(item["title"]), "", md_text(item["takeaway"]), "",
                   md_text(item["explanation"]), "", "依据：" + md_text(item["evidence"]), "",
-                  "解释边界：" + md_text(item["caveat"]), ""]
+                  "解释边界：" + md_text(item["caveat"]), "", "下一步：" + md_text(item.get("next_step", "核对字段口径。")), ""]
     lines += ["### 接下来可以了解", ""] + ["- " + md_text(q) for q in brief["next_questions"]]
     lines += ["", "### 本次解释的范围", ""] + ["- " + md_text(c) for c in brief["caveats"]] + [""]
     return lines
@@ -139,12 +145,20 @@ def brief_markdown(brief):
 def brief_html(brief):
     if not brief:
         return ""
+    statuses = {"supported": "观察到共同变化", "partial": "未见清晰单调关系", "insufficient": "暂不足以判断"}
+    answers = "".join(f'<article class="insight"><small>{escape(i.get("status_label") or statuses.get(i["status"], "问题回答"))}</small>'
+                      f'<h3>{escape(i["question"])}</h3><p>{escape(i["answer"])}</p><p>{escape(i["explanation"])}</p>'
+                      f'<details><summary>查看依据与解释边界 · {i["n"]} 条有效记录</summary><p>{escape(i["evidence"])}</p>'
+                      f'<p>{escape(i["caveat"])}</p></details><p>下一步：{escape(i["next_step"])}</p></article>'
+                      for i in brief.get("question_answers", []))
     cards = "".join(f'<article class="insight"><h3>{escape(i["title"])}</h3><p>{escape(i["takeaway"])}</p>'
                     f'<p>{escape(i["explanation"])}</p><details><summary>查看依据与解释边界 · {i["n"]} 条有效记录</summary>'
-                    f'<p>{escape(i["evidence"])}</p><p>{escape(i["caveat"])}</p></details></article>' for i in brief["findings"])
+                    f'<p>{escape(i["evidence"])}</p><p>{escape(i["caveat"])}</p></details>'
+                    f'<p>下一步：{escape(i.get("next_step", "核对字段口径。"))}</p></article>' for i in brief["findings"])
     questions = "".join(f'<li>{escape(q)}</li>' for q in brief["next_questions"])
     caveats = "".join(f'<li>{escape(c)}</li>' for c in brief["caveats"])
-    return f'<section class="panel"><h2>先看结论</h2><p>{escape(brief["answer"])}</p>{cards}<h3>接下来可以了解</h3><ul>{questions}</ul><details><summary>本次解释的范围</summary><ul>{caveats}</ul></details></section>'
+    answer_heading = "<h3>对问题逐项回答</h3>" if answers else ""
+    return f'<section class="panel"><h2>先看结论</h2><p>{escape(brief["answer"])}</p>{answer_heading}{answers}{cards}<h3>接下来可以了解</h3><ul>{questions}</ul><details><summary>本次解释的范围</summary><ul>{caveats}</ul></details></section>'
 
 
 def render_markdown(result, goal):

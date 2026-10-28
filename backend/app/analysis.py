@@ -300,7 +300,7 @@ def analyze(df, source, goal, target, progress):
     kinds = detect_types(df)
     from .explanations import choose_focus, build_brief, is_rank
     if target and target not in df.columns:
-        source["notes"].append("指定的目标字段不存在，本次使用自动字段选择。")
+        source["notes"].append("指定的关注字段不存在；本次不自动换成其他指标，请检查字段名后重新分析。")
     target, focus_origin = choose_focus(df, goal, target)
     if focus_origin == "auto":
         source["notes"].append(f"已根据字段和问题自动关注「{target}」，可在新建分析时更换。")

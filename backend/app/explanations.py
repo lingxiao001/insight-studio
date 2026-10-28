@@ -76,6 +76,10 @@ def meaning(name):
         return "这是就业能力自评量表，不是实际就业率、薪资或是否拿到录用通知。"
     if key in {"cet4", "cet6", "cet_4", "cet_6"}:
         return "这是0/1编码指标；未提供编码说明时，不自动解释为考试通过或未通过。"
+    if key == "internship":
+        return "这是实习成绩，不是实习时长、实习次数或是否有实习经历。"
+    if key.endswith("_scale"):
+        return "这是量表分值；需核对题目、计分方式和采集来源，不能直接当作客观能力或行为结果。"
     return "按上传表中的原始口径比较；数值大小的业务含义需结合字段定义。"
 
 
@@ -96,7 +100,7 @@ def choose_focus(df, goal="", requested=None):
     candidates = numeric_fields(df)
     intent = str(goal).lower()
     # Prefer a field literally named in the question before domain suggestions.
-    matches = [c for c in candidates if str(c).lower() in intent or label(c).lower() in intent]
+    matches = [c for c in candidates if mention_position(c, goal, known_aliases=False) is not None]
     if matches:
         return max(matches, key=lambda c: len(str(c))), "auto"
     employment = [c for c in candidates if normalized(c) in {"employment_ability_scale", "就业能力自评", "就业能力量表"}]
@@ -129,14 +133,122 @@ def target_pairs(df, target, candidates):
     return sorted(pairs, key=lambda p: (-abs(p["rho"]), str(p["field"])))
 
 
-def question_relevance(field, goal):
+def mention_position(field, goal, known_aliases=True):
+    """Match column names/known aliases without finding `a` inside `data`."""
     text = str(goal).lower()
     aliases = {"internship": ("实习",), "active_knowledge_acquisition_scale": ("主动学习",),
-               "innovation_and_entrepreneurship_scale": ("创新", "创业"), "career_guidance_mean": ("就业指导",)}
-    terms = (str(field).lower(), label(field).lower(), *aliases.get(normalized(field), ()))
-    explicit = any(t in text for t in terms)
+               "innovation_and_entrepreneurship_scale": ("创新", "创业"), "career_guidance_mean": ("就业指导",),
+               "employment_ability_scale": ("就业能力",), "cet4": ("四级",), "cet6": ("六级",)}
+    terms = (str(field).lower(), label(field).lower(), *(aliases.get(normalized(field), ()) if known_aliases else ()))
+    positions = []
+    for term in terms:
+        # Chinese phrases have no word separators. ASCII field names do.
+        pattern = re.escape(term)
+        if re.fullmatch(r"[a-z0-9_\s-]+", term):
+            pattern = r"(?<![a-z0-9_])" + pattern + r"(?![a-z0-9_])"
+        match = re.search(pattern, text)
+        if match:
+            positions.append(match.start())
+    return min(positions) if positions else None
+
+
+def question_relevance(field, goal):
+    text = str(goal).lower()
+    explicit = mention_position(field, goal) is not None
     course = "课程" in text and not normalized(field).endswith("_scale") and not is_rank(field)
     return int(explicit), int(course)
+
+
+def relationship_title(field, target, rho):
+    """Translate rank signs in either position without calling a rank a score."""
+    if is_rank(field):
+        if is_rank(target):
+            direction = "靠前" if rho > 0 else "靠后"
+            return f"{label(field)}更靠前的记录，{label(target)}通常更{direction}"
+        direction = "较高" if rho < 0 else "较低"
+        return f"{label(field)}更靠前的记录，{label(target)}通常{direction}"
+    if is_rank(target):
+        direction = "靠前" if rho < 0 else "靠后"
+        return f"{label(field)}较高的记录，{label(target)}通常更{direction}"
+    direction = "同向变化" if rho > 0 else "反向变化"
+    return f"{label(field)}与{label(target)}在样本中{direction}"
+
+
+def relationship_boundary(field, target):
+    notes = ["这是样本内的探索性描述，未做显著性检验、混杂控制或独立预测验证；不能据此认定因果。"]
+    if is_rank(field) or is_rank(target):
+        notes.append("名次越小越靠前；课程成绩或量表可能与排名共享评分来源，不能解释为独立影响。")
+    if normalized(field).endswith("_scale") and normalized(target).endswith("_scale"):
+        notes.append("两个量表可能共享作答者、题目或计分方法，当前表不能区分共同测量来源与真实能力关系。")
+    if normalized(field) == "employment_ability_scale" or normalized(target) == "employment_ability_scale":
+        notes.append("就业能力自评不能替代实际就业率、录用或薪资。")
+    if normalized(field) == "internship" or normalized(target) == "internship":
+        notes.append("实习列记录的是成绩，不能解释为增加实习时长的效果。")
+    return "".join(notes)
+
+
+def answer_named_relationships(df, target, candidates, pairs, goal, findings):
+    """Answer requested comparisons even when they do not pass display filters.
+
+    Status is a descriptive display rule, never confidence or significance.
+    No row values or category labels are added to the model evidence here.
+    """
+    from .analysis import IDENTIFIER_NAME
+    named = [field for field in df if field != target and mention_position(field, goal) is not None]
+    named.sort(key=lambda field: (mention_position(field, goal), str(field)))
+    by_field = {pair["field"]: pair for pair in pairs}
+    answers = []
+    for field in named[:12]:
+        complete = df[[field, target]].dropna()
+        n = len(complete)
+        pair = by_field.get(field)
+        rho = pair["rho"] if pair else None
+        evidence = f"成对有效 n={n}/{len(df)}；缺失任意一项的记录不参与此项比较。"
+        if rho is not None:
+            evidence += f"Spearman ρ={rho:.4f}。"
+        caveat = relationship_boundary(field, target)
+        status_label = None
+        categorical = (not pd.api.types.is_numeric_dtype(df[field]) or pd.api.types.is_bool_dtype(df[field]))
+        if categorical and not IDENTIFIER_NAME.search(field):
+            status, status_label = "partial", "当前方法不适用"
+            answer = f"{label(field)}是类别指标，不适用于与{label(target)}的数值排序关系比较。"
+            explanation = "当前逐项回答只计算数值排序关系，本项未做类别间差异比较。请查看已生成的分组依据；未运行这种比较不能说明类别与目标没有关系，也不能判断差异大小。"
+        elif pair and n >= 20 and abs(rho) >= .2:
+            status = "supported"
+            answer = relationship_title(field, target, rho) + "。"
+            strength = "较强" if abs(rho) >= .7 else "中等" if abs(rho) >= .4 else "较弱"
+            explanation = (f"在这份样本中，共同变化程度为{strength}（排序相关{rho:.2f}）。"
+                           "这有助于提出复核问题，不能判断改变其中一项会带来什么效果，也不表示统计显著或结论可靠。")
+            if abs(rho) >= .95 and (normalized(field).endswith("_scale") or normalized(target).endswith("_scale")):
+                explanation = ("两列排序高度重合，应先核对是否独立采集、是否共享题目或评分规则，再讨论能力关系。"
+                               "这既不能证明量表有效，也不能据此认定数据造假。")
+        elif pair and n >= 20:
+            status = "partial"
+            answer = f"当前样本未显示{label(field)}与{label(target)}之间清晰的单调关系。"
+            explanation = "排序关联的绝对值低于0.20的展示口径。这不等于二者无关；分组差异、非线性关系、测量误差或缺失记录仍可能影响判断。"
+        else:
+            status = "insufficient"
+            answer = f"暂不足以判断{label(field)}与{label(target)}的关系。"
+            if n < 20:
+                explanation = f"仅有{n}条成对有效记录，未达到20条的解释展示口径；样本量门槛本身不保证结论可靠。"
+            elif field not in candidates:
+                explanation = "此字段未成为可比较的数值指标：可能是文本／类别、常量或疑似编号。需要先核对字段类型和口径，不能强行计算排序关系。"
+            else:
+                explanation = "成对记录中的至少一列缺少足够变化，无法形成可解释的排序关系。"
+        next_step = (f"先核对「{label(field)}」和「{label(target)}」的定义、采集时间及评分来源；"
+                     + ("补充成对记录后再比较。" if status == "insufficient" else "用独立记录复核这项观察。"))
+        if status_label:
+            next_step = f"在分组统计中核对「{label(field)}」各类别的记录数和「{label(target)}」分布，再决定是否需要组间比较。"
+        answers.append({"id": f"question-{len(answers)+1}",
+                        "question": f"{label(field)}与{label(target)}有什么关系？",
+                        "answer": answer, "status": status, "explanation": explanation,
+                        "evidence": evidence, "caveat": caveat, "next_step": next_step,
+                        "fields": [field, target], "n": n, "rho": rho,
+                        "finding_ids": [finding["id"] for finding in findings
+                                        if set([field, target]).issubset(finding["fields"])]})
+        if status_label:
+            answers[-1]["status_label"] = status_label
+    return answers, len(named)
 
 
 def question_pairs(pairs, goal):
@@ -159,11 +271,17 @@ def schema_description(df, source):
     from .analysis import detect_types, IDENTIFIER_NAME
     kinds = detect_types(df)
     focus, _ = choose_focus(df)
-    columns = [{"name": c, "label": label(c), "kind": kinds[c], "meaning": meaning(c),
-                "suggested": c == focus, "selectable": kinds[c] == "numeric" and not IDENTIFIER_NAME.search(c)} for c in df]
+    columns = []
+    for c in df:
+        selectable = (kinds[c] == "numeric" and not IDENTIFIER_NAME.search(c)
+                      and df[c].notna().sum() >= 5 and df[c].nunique() > 1)
+        reason = ("" if selectable else "关注指标需为非编号的数值列，至少5个有效值且包含不同取值；当前列不满足。")
+        columns.append({"name": c, "label": label(c), "kind": kinds[c], "meaning": meaning(c),
+                        "suggested": c == focus, "selectable": bool(selectable), "selection_note": reason})
     suggestions = []
-    rank = next((c for c in df if is_rank(c)), None)
-    employment = next((c for c in df if normalized(c) == "employment_ability_scale"), None)
+    selectable_fields = {c["name"] for c in columns if c["selectable"]}
+    rank = next((c for c in df if c in selectable_fields and is_rank(c)), None)
+    employment = next((c for c in df if c in selectable_fields and normalized(c) == "employment_ability_scale"), None)
     if rank:
         suggestions.append({"label": "理解学业表现", "target": rank,
                             "goal": "哪些课程成绩与GPA排名更相关？这些关系能说明什么，不能说明什么？"})
@@ -179,6 +297,7 @@ def schema_description(df, source):
 
 def build_brief(df, kinds, target, origin, goal, charts, source):
     candidates = numeric_fields(df, target)
+    selected_focus = target if target in df.columns else None
     if target not in candidates:
         target = None
     pairs = target_pairs(df, target, candidates)
@@ -191,9 +310,11 @@ def build_brief(df, kinds, target, origin, goal, charts, source):
                          "takeaway": takeaway, "explanation": explanation, "evidence": evidence,
                          "fields": fields, "chart_ids": ids, "caveat": caveat, "n": int(n), "next_step": next_step})
 
-    focus = {"column": target, "label": label(target) if target else None, "origin": origin,
-             "lower_is_better": is_rank(target) if target else False, "meaning": meaning(target) if target else ""}
+    focus = {"column": selected_focus, "label": label(selected_focus) if selected_focus else None, "origin": origin,
+             "lower_is_better": is_rank(selected_focus) if selected_focus else False,
+             "meaning": meaning(selected_focus) if selected_focus else "", "analyzable": target is not None}
     caveats = ["结论只描述本次读取的记录；共同变化不等于一个因素造成另一个结果。"]
+    question_answers, questions_detected = [], 0
     if target:
         values = df[target].dropna()
         q1, median, q3 = [float(v) for v in values.quantile([.25, .5, .75])]
@@ -241,19 +362,14 @@ def build_brief(df, kinds, target, origin, goal, charts, source):
         supported = question_pairs([p for p in pairs if p["n"] >= 20 and abs(p["rho"]) >= .2], goal)
         for pair in supported[:3]:
             other, rho = pair["field"], pair["rho"]
-            if is_rank(target):
-                direction = "靠前" if rho < 0 else "靠后"
-                title = f"{label(other)}较高的记录，GPA排名通常更{direction}"
-            else:
-                direction = "同向变化" if rho > 0 else "反向变化"
-                title = f"{label(other)}与{label(target)}在样本中{direction}"
+            title = relationship_title(other, target, rho)
             strength = "较强" if abs(rho) >= .7 else "中等" if abs(rho) >= .4 else "较弱"
             add("relationship", title, f"在{pair['n']:,}条同时有值的记录中，两项排序呈{strength}的共同变化。",
                 ("可先结合这项记录理解成绩差异；课程或量表与排名可能共享计算来源。" if is_rank(target)
                  else "这表示两项记录在样本中往往一起变化，可作为访谈或复核的切入点。") +
                 ("就业能力自评反映主观评价，不能替代实际就业结果。" if "就业能力自评" == label(target) else ""),
                 f"Spearman ρ={rho:.4f}；成对有效 n={pair['n']}；扫描{len(pairs)}组目标关系，先按问题相关性、再参考关联程度筛选。",
-                [other, target], "探索性筛选，未校正多重比较；不是因果效应或经验证的预测能力。", pair["n"],
+                [other, target], relationship_boundary(other, target), pair["n"],
                 f"结合「{label(other)}」的记录口径，访谈不同表现的学生。" if is_rank(target) else f"核对「{label(other)}」的测量方式，并在独立样本中复核这组关系。")
         if not supported:
             add("insufficient", "暂未发现足够清晰的目标关联", "当前数值关系没有同时满足至少20对记录和排序关联绝对值0.20的展示门槛。",
@@ -294,6 +410,40 @@ def build_brief(df, kinds, target, origin, goal, charts, source):
                 answer = (f"在当前样本中，两组排序关联的绝对值分别为{abs(high['rho']):.2f}和{abs(low['rho']):.2f}。"
                           "这有助于区分不同记录提供的信息，不能当作干预效果或预测能力的比较。" + meaning(target))
         caveats.append(meaning(target))
+        question_answers, questions_detected = answer_named_relationships(df, target, candidates, pairs, goal, findings[:5])
+        if question_answers:
+            # The question's weak or unavailable relationships must not be
+            # displaced by a stronger, unrelated relationship elsewhere.
+            first = question_answers[0]
+            headline = first["answer"].rstrip("。")
+            answer = "".join(item["answer"] for item in question_answers[:3]) + meaning(target)
+            first_two = question_answers[:2]
+            if len(first_two) == 2 and all(item["status"] == "supported" for item in first_two):
+                high, low = max(first_two, key=lambda item: abs(item["rho"])), min(first_two, key=lambda item: abs(item["rho"]))
+                if abs(high["rho"]) - abs(low["rho"]) >= .15:
+                    headline = f"相比{label(low['fields'][0])}，{label(high['fields'][0])}与{label(target)}的同步变化更明显"
+            if len(question_answers) > 3:
+                answer += f"其余{len(question_answers)-3}项问题见逐项回答。"
+        elif aligned:
+            headline = "先核对量表与目标的评分来源，再解读其他关系"
+            measurement = next(f for f in findings if f["kind"] == "measurement")
+            relationship = next((f for f in findings if f["kind"] == "relationship"), None)
+            answer = measurement["takeaway"] + (relationship["title"] + "。" if relationship else "") + meaning(target)
+    elif selected_focus:
+        values = df[selected_focus].dropna()
+        headline = f"暂不足以解释{label(selected_focus)}的关系"
+        answer = f"你选择的「{label(selected_focus)}」有{len(values)}个有效值、{values.nunique()}种取值，当前不能形成可核对的数值关系。"
+        explanation = "关注指标需是非编号的数值列，至少5个有效值且包含不同取值；不会改用其他指标替你回答。"
+        evidence_text = f"全表 n={len(df)}；目标非缺失 n={len(values)}；不同取值={values.nunique()}。"
+        add("insufficient", headline, answer, explanation, evidence_text, [selected_focus],
+            meaning(selected_focus), len(values), "核对指标类型并补充有变化的有效记录，或重新选择关注指标。")
+        question_answers = [{"id": "question-1", "question": f"目前能解释{label(selected_focus)}吗？",
+                             "answer": answer, "status": "insufficient", "explanation": explanation,
+                             "evidence": evidence_text, "caveat": meaning(selected_focus),
+                             "next_step": findings[0]["next_step"], "fields": [selected_focus],
+                             "n": len(values), "rho": None, "finding_ids": [findings[0]["id"]]}]
+        questions_detected = 1
+        caveats.append(meaning(selected_focus))
     else:
         # A categorical or text-only table still gets usable, non-invented findings.
         for field in df:
@@ -317,10 +467,20 @@ def build_brief(df, kinds, target, origin, goal, charts, source):
         caveats.append(f"这里只读取文件前{len(df):,}行，不能代表完整文件或随机样本。")
     elif source.get("is_demo"):
         caveats.append("这是一份合成演示数据，不能代表真实业务。")
-    next_questions = list(dict.fromkeys(f["next_step"] for f in findings if f["kind"] != "overview"))[:3]
+    if questions_detected > len(question_answers):
+        caveats.append(f"识别到{questions_detected}项点名比较，本次仅逐项回答前{len(question_answers)}项，"
+                       f"其余{questions_detected-len(question_answers)}项尚未回答；请拆分问题继续分析。")
+    next_questions = list(dict.fromkeys([item["next_step"] for item in question_answers]
+                                      + [f["next_step"] for f in findings if f["kind"] != "overview"]))[:3]
     brief = {"version": 1, "headline": headline, "answer": answer, "goal": goal, "focus": focus,
-             "findings": findings[:5], "next_questions": next_questions, "caveats": caveats,
-             "coverage": {"analyzed_rows": len(df), "numeric_fields_scanned": len(candidates), "relationships_evaluated": len(pairs)}}
+             "findings": findings[:5], "question_answers": question_answers,
+             "next_questions": next_questions, "caveats": caveats,
+             "coverage": {"analyzed_rows": len(df), "numeric_fields_scanned": len(candidates), "relationships_evaluated": len(pairs),
+                          "questions_detected": questions_detected, "questions_answered": len(question_answers),
+                          "questions_omitted": max(0, questions_detected-len(question_answers))}}
     # Only field names and numeric aggregates are eligible for model input.
-    evidence = {"focus": focus, "target_relationships": question_pairs(pairs, goal)[:8], "coverage": brief["coverage"]}
+    evidence = {"focus": focus, "target_relationships": question_pairs(pairs, goal)[:8],
+                "question_answers": [dict({k: item[k] for k in ("fields", "status", "n", "rho", "caveat")},
+                                          method="not_applicable" if item.get("status_label") else "spearman")
+                                     for item in question_answers], "coverage": brief["coverage"]}
     return brief, evidence

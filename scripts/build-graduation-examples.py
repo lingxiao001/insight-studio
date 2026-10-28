@@ -44,25 +44,44 @@ def public_snapshot(df, result, key, title, topic):
     counts, edges = np.histogram(df[target].dropna(), bins=8)
     bins = [f"{a:g}–{b:g}{'（含右端）' if i == 7 else '（不含右端）'}"
             for i, (a, b) in enumerate(zip(edges[:-1], edges[1:]))]
-    charts = [chart("public-distribution", f"{label(target)}的分布", "253条有效记录的分箱计数。",
+    charts = [chart("public-distribution", f"{label(target)}的分布", f"{int(df[target].notna().sum())}条有效记录的分箱计数。",
                     bins, counts.tolist(), fields=[target])]
     pairs = {p["field"]: p for p in target_pairs(df, target, numeric_fields(df, target))}
-    related = list(dict.fromkeys(f["fields"][0] for f in brief["findings"]
-                                if f["kind"] in {"relationship", "measurement"}))
+    # Include the explicitly asked relationships even when their association is weak.
+    asked = [field for answer in brief.get("question_answers", []) for field in answer.get("fields", [])
+             if field != target and field in pairs]
+    related = list(dict.fromkeys(asked + [f["fields"][0] for f in brief["findings"]
+                                        if f["kind"] in {"relationship", "measurement"}
+                                        and f["fields"][0] in pairs]))[:8]
     if related:
-        charts.append(chart("public-relationships", "主要发现对应的排序关联", "每组均使用253条成对有效记录；数值保留四位小数。GPA名次越小越靠前。" if key == "academic" else "每组均使用253条成对有效记录；数值保留四位小数。自评量表的同步变化不等于实际就业结果。",
+        sizes = "/".join(str(pairs[field]["n"]) for field in related)
+        explanation = "GPA名次越小越靠前。" if key == "academic" else "自评量表的同步变化不等于实际就业结果。"
+        charts.append(chart("public-relationships", "问题与发现对应的排序关联",
+                            f"各组使用成对有效记录；对应n={sizes}，数值保留四位小数。" + explanation,
                             [round(pairs[f]["rho"], 4) for f in related], [label(f) for f in related],
                             horizontal=True, fields=related + [target]))
-    if any(f["kind"] == "contrast" for f in brief["findings"]):
-        high = df["internship"] >= df["internship"].quantile(.75)
-        low = df[target] <= df[target].quantile(.25)
-        joint, total = int((high & low).sum()), int(high.sum())
-        charts.append(chart("public-contrast", "实习成绩较高组中的就业能力自评分布",
-                            f"分母是实习成绩≥92的{total}条记录；就业能力自评≤78的有{joint}条。包含分位边界值。",
-                            ["就业能力自评≤78", "就业能力自评>78"], [joint, total-joint],
-                            fields=["internship", target]))
+    contrast = next((f for f in brief["findings"] if f["kind"] == "contrast"), None)
+    if contrast:
+        field = next((f for f in contrast["fields"] if f != target), None)
+        if field in df:
+            complete = df[[field, target]].dropna()
+            high_cut = float(complete[field].quantile(.75))
+            low_cut = float(complete[target].quantile(.25))
+            high = complete[field].ge(high_cut)
+            low = complete[target].le(low_cut)
+            joint, total = int((high & low).sum()), int(high.sum())
+            charts.append(chart("public-contrast", f"{label(field)}较高组中的{label(target)}分布",
+                                f"分母是{label(field)}≥{high_cut:g}的{total}条记录；{label(target)}≤{low_cut:g}的有{joint}条。分位数在{len(complete)}条成对有效记录内计算，包含边界值。",
+                                [f"{label(target)}≤{low_cut:g}", f"{label(target)}>{low_cut:g}"],
+                                [joint, total-joint], fields=[field, target]))
+    available = {item["id"] for item in charts}
+    retained = {finding["id"] for finding in brief["findings"]}
     for finding in brief["findings"]:
-        finding["chart_ids"] = [{"overview": "public-distribution", "contrast": "public-contrast"}.get(finding["kind"], "public-relationships")]
+        candidate = {"overview": "public-distribution", "contrast": "public-contrast",
+                     "relationship": "public-relationships", "measurement": "public-relationships"}.get(finding["kind"])
+        finding["chart_ids"] = [candidate] if candidate in available else []
+    for answer in brief.get("question_answers", []):
+        answer["finding_ids"] = [fid for fid in answer.get("finding_ids", []) if fid in retained]
     source = deepcopy(result["source"])
     source["public_example"] = True
     source["notes"] += [PROVENANCE[k] for k in ("population", "preprocessing", "publication")]

@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from app.analysis import analyze
-from app.explanations import schema_description
+from app.explanations import choose_focus, schema_description
 from app.report import render_html, render_markdown
 
 
@@ -113,3 +113,115 @@ def test_question_comparison_and_cross_section_have_exact_denominators():
     both = high & complete.score.le(complete.score.quantile(.25))
     assert f"交叉计数={int(both.sum())}/{int(high.sum())}" in contrast["evidence"]
     assert contrast["n"] == len(complete)
+
+
+def test_named_weak_relationship_is_answered_before_unrequested_strong_pair():
+    df = pd.DataFrame({"score": [-1., 0., 1.] * 20,
+                       "weak": [1., -2., 1.] * 20,
+                       "unrequested": [-1.1, 0.1, 1.1] * 20})
+    result, aggregates = run(df, "请解释 weak 与 score 的关系", "score")
+    brief = result["brief"]
+    answer = brief["question_answers"][0]
+    assert answer["fields"] == ["weak", "score"]
+    assert answer["status"] == "partial" and answer["rho"] == pytest.approx(0)
+    assert "未显示weak与score之间清晰的单调关系" in brief["answer"]
+    assert "unrequested" not in brief["headline"]
+    assert "不等于二者无关" in answer["explanation"]
+    assert aggregates["explanation_evidence"]["question_answers"][0]["status"] == "partial"
+
+
+def test_each_named_question_survives_small_samples_and_constant_fields():
+    n = 60
+    df = pd.DataFrame({"score": np.sin(np.arange(n)),
+                       "sparse": [1., 3., 2., 4., 6., 5., 7.] + [np.nan] * (n-7),
+                       "constant": [4.] * n})
+    result, _ = run(df, "sparse 与 constant 分别能说明什么？", "score")
+    answers = result["brief"]["question_answers"]
+    assert [a["fields"][0] for a in answers] == ["sparse", "constant"]
+    assert all(a["status"] == "insufficient" for a in answers)
+    assert answers[0]["n"] == 7 and "n=7/60" in answers[0]["evidence"]
+    assert answers[1]["n"] == 60 and answers[1]["rho"] is None
+    assert "常量" in answers[1]["explanation"]
+    assert result["brief"]["coverage"]["questions_answered"] == 2
+
+
+@pytest.mark.parametrize("target,values", [("constant", [1.] * 30),
+                                          ("sparse", [1., 3., 2.] + [np.nan] * 27)])
+def test_unanalyzable_explicit_focus_is_retained_and_answered(target, values):
+    df = pd.DataFrame({target: values, "category": ["a", "b"] * 15})
+    result, _ = run(df, target=target)
+    brief = result["brief"]
+    assert brief["focus"]["column"] == target and brief["focus"]["analyzable"] is False
+    assert brief["question_answers"][0]["status"] == "insufficient"
+    assert not any(f["kind"] == "composition" for f in brief["findings"])
+    schema = schema_description(df, {"notes": []})
+    selected = next(c for c in schema["columns"] if c["name"] == target)
+    assert not selected["selectable"] and selected["selection_note"]
+
+
+def test_rank_as_explanatory_field_uses_rank_direction_and_measurement_limits():
+    n = 60
+    df = pd.DataFrame({"gpa_rank": np.arange(1, n+1),
+                       "employment_ability_scale": 100 - np.arange(n) * .3 + np.sin(np.arange(n)) * .01})
+    result, _ = run(df, "gpa_rank 与就业能力自评有什么关系？", "employment_ability_scale")
+    item = result["brief"]["question_answers"][0]
+    assert "GPA排名更靠前" in item["answer"]
+    assert "就业能力自评通常较高" in item["answer"]
+    assert "不是实际就业率" in result["brief"]["answer"]
+    assert "共享评分来源" in item["caveat"]
+
+
+def test_shared_scale_sources_are_caveated_and_ascii_names_do_not_substring_match():
+    n = 60
+    df = pd.DataFrame({"employment_ability_scale": np.sin(np.arange(n)),
+                       "active_knowledge_acquisition_scale": np.sin(np.arange(n)) + .01,
+                       "a": np.cos(np.arange(n))})
+    result, _ = run(df, "主动学习与就业能力的关系；explain data", "employment_ability_scale")
+    answers = result["brief"]["question_answers"]
+    assert len(answers) == 1 and answers[0]["fields"][0] == "active_knowledge_acquisition_scale"
+    assert "共享作答者、题目或计分方法" in answers[0]["caveat"]
+    assert "先核对是否独立采集" in answers[0]["explanation"]
+    assert "a" not in [item["fields"][0] for item in answers]
+
+
+def test_focus_selection_respects_ascii_field_boundaries():
+    df = pd.DataFrame({"a": np.sin(np.arange(30)), "score": np.cos(np.arange(30))})
+    assert choose_focus(df, "explain data")[0] == "score"
+    assert choose_focus(df, "explain a")[0] == "a"
+
+
+def test_question_answers_and_specific_next_steps_are_in_both_exports():
+    result, _ = run(students(), "实习与就业能力的关系", "employment_ability_scale")
+    md = render_markdown(result, "")
+    html = render_html(result, md, "")
+    for text in (md, html):
+        assert "对问题逐项回答" in text
+        assert "实习列记录的是成绩" in text
+        assert "下一步：" in text
+    assert html.index("对问题逐项回答") < html.index("先看懂就业能力自评")
+
+
+def test_bounded_question_answers_disclose_unanswered_comparisons():
+    n = 40
+    df = pd.DataFrame({"score": np.sin(np.arange(n))})
+    for index in range(13):
+        df[f"x{index}"] = np.cos(np.arange(n) + index)
+    result, _ = run(df, " ".join(f"x{index}" for index in range(13)), "score")
+    brief = result["brief"]
+    assert len(brief["question_answers"]) == 12
+    assert brief["coverage"]["questions_detected"] == 13
+    assert brief["coverage"]["questions_omitted"] == 1
+    assert any("其余1项尚未回答" in caveat for caveat in brief["caveats"])
+    finding_ids = {item["id"] for item in brief["findings"]}
+    assert all(set(item["finding_ids"]) <= finding_ids for item in brief["question_answers"])
+
+
+def test_named_category_distinguishes_method_scope_from_sample_shortage():
+    df = pd.DataFrame({"score": np.sin(np.arange(60)), "gender": ["a", "b"] * 30})
+    result, aggregates = run(df, "性别与成绩有什么关系", "score")
+    item = result["brief"]["question_answers"][0]
+    assert item["status"] == "partial" and item["status_label"] == "当前方法不适用"
+    assert item["n"] == 60 and item["rho"] is None
+    assert "未做类别间差异比较" in item["explanation"]
+    assert "样本不足" not in item["answer"] and "样本不足" not in item["explanation"]
+    assert aggregates["explanation_evidence"]["question_answers"][0]["method"] == "not_applicable"

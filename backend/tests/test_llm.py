@@ -16,6 +16,32 @@ KEY = "sk-or-v1-test-credential-never-return"
 MODEL = "test/fixed-model"
 
 
+@pytest.mark.parametrize("text", [
+    "就业能力自评越高，真实就业率越高。",
+    "实习成绩较高的学生更容易获得录用。",
+    "就业率提高10%，薪资也随之上升。",
+    "不能推断因果，但这组学生的就业率达到90%。",
+])
+def test_employment_self_report_does_not_become_observed_employment(text):
+    flags = review_model_assertions([text], focus="employment_ability_scale")
+    assert "将就业能力自评误读为真实就业结果" in flags
+
+
+@pytest.mark.parametrize("text", [
+    "就业能力自评不是实际就业率，不能据此断言就业率提高。",
+    "不能推断实习成绩提高会带来薪资提高。",
+    "需要收集就业率提高或下降的真实记录来验证。",
+    "尚无证据说明就业率达到90%。",
+    "可先了解学生如何理解问卷题目。",
+])
+def test_self_report_review_allows_measurement_warnings_and_data_requests(text):
+    assert review_model_assertions([text], focus="employment_ability_scale") == []
+
+
+def test_employment_guard_is_scoped_to_self_report_target():
+    assert review_model_assertions(["所选组就业率为90%。"], focus="observed_employment_rate") == []
+
+
 @pytest.fixture
 def analysis():
     df, source = demo_dataset()
@@ -92,6 +118,21 @@ def test_success_receives_only_aggregates_and_has_hard_provider_caps(analysis, l
     assert usage["prompt_tokens"] == 123 and usage["completion_tokens"] == 456
     assert usage["request_count"] == 1 and usage["uncertain_usd"] == 0
     assert "$1" in " ".join(result["agent"]["notes"]) and "$5" not in " ".join(result["agent"]["notes"])
+
+
+def test_billed_model_employment_misreading_is_withheld_without_replacing_brief(analysis, ledger, monkeypatch):
+    result, aggregates = analysis
+    result["brief"]["focus"]["column"] = "employment_ability_scale"
+    before = copy.deepcopy(result)
+    captured = []
+    mock_provider(monkeypatch, json.dumps({"summary": "实习成绩高的学生就业率提高10%。",
+                                          "narrative": "这组学生更容易获得录用。"}), captured)
+    enrich(result, aggregates, "解释就业能力自评", "employment_ability_scale", ledger.settings, ledger)
+    assert len(captured) == 1 and ledger.usage()["spent_usd"] == .00012
+    assert result["agent"]["mode"] == "statistical"
+    assert result["brief"] == before["brief"] and result["summary"] == before["summary"]
+    assert result["insights"] == before["insights"]
+    assert "将就业能力自评误读为真实就业结果" in " ".join(result["agent"]["notes"])
 
 
 def test_admin_model_usage_note_has_no_cumulative_limit(analysis, ledger, monkeypatch):

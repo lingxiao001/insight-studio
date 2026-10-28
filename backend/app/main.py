@@ -166,7 +166,7 @@ class JobManager:
                                       self.settings.max_rows, self.settings.max_columns)
         result, aggregates = analyze(df, source, job["goal"], job["target_column"], progress)
         if job["use_llm"]:
-            enrich(result, aggregates, job["goal"], job["target_column"], self.settings,
+            enrich(result, aggregates, job["goal"], result.get("brief", {}).get("focus", {}).get("column"), self.settings,
                    self.ledger.for_user(job["user_id"]), jid)
         else:
             result["agent"]["notes"].append("本次未启用外部模型，使用可复算的统计规则生成洞察。")

@@ -31,6 +31,7 @@ export type UploadSchema = {
 export type ExplanationBrief = {
   version: number; headline: string; answer: string; goal: string;
   focus: {column: string | null; label: string | null; origin: string; lower_is_better: boolean; meaning: string};
+  question_answers?: {id: string; question: string; answer: string; status: 'supported' | 'partial' | 'insufficient'; status_label?: string; explanation: string; evidence: string; caveat: string; next_step: string; fields: string[]; n: number; rho: number | null; finding_ids: string[]}[];
   findings: {id: string; kind: string; title: string; takeaway: string; explanation: string; evidence: string; caveat: string; n: number; fields: string[]; chart_ids: string[]; next_step: string}[];
   next_questions: string[]; caveats: string[];
   coverage: {analyzed_rows: number; numeric_fields_scanned: number; relationships_evaluated: number};

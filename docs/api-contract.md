@@ -95,6 +95,7 @@ type Result = {
         review?:{status:string;reviewed_at?:string;note?:string;[key:string]:unknown}};
  duration_seconds:number;
  eda?:EdaV2|null;
+ brief?:ExplanationBrief|null;
 };
 ```
 
@@ -166,6 +167,37 @@ Pearson/Spearman 使用成对完整样本，最少 5 对仅作计算防护，不
 
 ## 解释层增量契约
 
-`GET /api/uploads/{upload_id}/schema?selected_file=...`本地读取当前账号的表格，返回columns（name、label、kind、meaning、selectable、suggested）、suggested_target、questions、analyzed_rows、notes。不返回原始行、不创建任务、不调用模型。其他账号返回404，非法成员或不可解析文件返回400。
+`GET /api/uploads/{upload_id}/schema?selected_file=...`本地读取当前账号的表格，返回columns（name、label、kind、meaning、selectable、suggested、selection_note）、suggested_target、questions、analyzed_rows、notes。不返回原始行、不创建任务、不调用模型。其他账号返回404，非法成员或不可解析文件返回400。`selectable`要求非编号数值列、至少5个非缺失值和至少2种取值；不满足时，`selection_note`说明限制。
 
-结果新增可选brief版本1：headline、answer、goal、focus、findings、next_questions、caveats、coverage。finding含id、kind、title、takeaway、explanation、evidence、fields、chart_ids、caveat、n、next_step。coverage含analyzed_rows、numeric_fields_scanned、relationships_evaluated。旧结果缺少brief时继续显示原概览。
+结果支持可选的`brief`版本1；以下新增键采用兼容方式读取，历史结果可能缺失：
+
+```ts
+type QuestionAnswer = {
+ id:string; question:string; answer:string;
+ status:'supported'|'partial'|'insufficient'; status_label?:string;
+ explanation:string; evidence:string; caveat:string; next_step:string;
+ fields:string[]; n:number; rho:number|null; finding_ids:string[];
+};
+type ExplanationBrief = {
+ version:1; headline:string; answer:string; goal:string;
+ focus:{column:string|null;label:string|null;origin:'user'|'auto'|'none';
+        lower_is_better:boolean;meaning:string;analyzable?:boolean};
+ findings:{id:string;kind:string;title:string;takeaway:string;explanation:string;
+           evidence:string;fields:string[];chart_ids:string[];caveat:string;
+           n:number;next_step:string}[];
+ question_answers?:QuestionAnswer[];
+ next_questions:string[]; caveats:string[];
+ coverage:{analyzed_rows:number;numeric_fields_scanned:number;relationships_evaluated:number;
+           questions_detected?:number;questions_answered?:number;questions_omitted?:number};
+};
+```
+
+`question_answers`按问题中识别出的字段出现顺序，最多返回12项。字段匹配使用列名、展示名称及已知领域别名，不能据此声称理解了所有自然语言问题。`questions_omitted`记录超出上限而未回答的项数，并在`caveats`中提示拆分问题。`finding_ids`只关联同一结果中已展示的补充发现，可为空；不能用其为空推断没有证据。
+
+三个状态是描述性展示规则：数值比较中，`supported`要求至少20对有效值且`|rho|>=0.20`；`partial`表示至少20对记录但排序相关较弱；`insufficient`表示记录不足、常量或疑似编号等不能形成比较。类别字段可返回`partial`并附`status_label='当前方法不适用'`，明确当前逐项回答未做类别间比较，不能称为弱关联或数据不足。客户端优先展示可选`status_label`，其余情况使用默认状态文案。
+
+这些状态均不表示统计显著性、置信度或因果。`rho`在未计算或无法计算时为null，`n`是该项成对非缺失记录数；方法不适用、支持不足和没有清晰单调关系需结合`explanation`分别读取，不能统称没有关系。
+
+`focus.analyzable=false`时仍可保留用户明确选择的列，说明类型或有效记录限制，不改用其他指标替原问题作答。`findings`最多五项；逐项回答、补充发现、导出和可选模型证据来自服务端同一次分析。模型不会覆盖规则生成的brief。
+
+旧结果缺少`brief`时继续显示原概览；旧brief缺少`question_answers`或新增coverage字段时继续展示原发现。浏览旧报告不创建新任务、不调用模型，也不自动补算新增字段。统计口径与教育语义边界见[解释型分析](explanatory-analysis.md)。
