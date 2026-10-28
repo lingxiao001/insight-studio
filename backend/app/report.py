@@ -123,9 +123,33 @@ def deep_html(eda):
         + "".join(tables) + "</section>")
 
 
+def brief_markdown(brief):
+    if not brief:
+        return []
+    lines = ["## 先看结论", "", md_text(brief["answer"]), ""]
+    for item in brief["findings"]:
+        lines += ["### " + md_text(item["title"]), "", md_text(item["takeaway"]), "",
+                  md_text(item["explanation"]), "", "依据：" + md_text(item["evidence"]), "",
+                  "解释边界：" + md_text(item["caveat"]), ""]
+    lines += ["### 接下来可以了解", ""] + ["- " + md_text(q) for q in brief["next_questions"]]
+    lines += ["", "### 本次解释的范围", ""] + ["- " + md_text(c) for c in brief["caveats"]] + [""]
+    return lines
+
+
+def brief_html(brief):
+    if not brief:
+        return ""
+    cards = "".join(f'<article class="insight"><h3>{escape(i["title"])}</h3><p>{escape(i["takeaway"])}</p>'
+                    f'<p>{escape(i["explanation"])}</p><details><summary>查看依据与解释边界 · {i["n"]} 条有效记录</summary>'
+                    f'<p>{escape(i["evidence"])}</p><p>{escape(i["caveat"])}</p></details></article>' for i in brief["findings"])
+    questions = "".join(f'<li>{escape(q)}</li>' for q in brief["next_questions"])
+    caveats = "".join(f'<li>{escape(c)}</li>' for c in brief["caveats"])
+    return f'<section class="panel"><h2>先看结论</h2><p>{escape(brief["answer"])}</p>{cards}<h3>接下来可以了解</h3><ul>{questions}</ul><details><summary>本次解释的范围</summary><ul>{caveats}</ul></details></section>'
+
+
 def render_markdown(result, goal):
     source, overview = result["source"], result["overview"]
-    lines = [f"# {md_text(result['title'])}", "", md_text(result["summary"]), "", "## 来源与范围", "",
+    lines = [f"# {md_text(result['title'])}", "", md_text(result["summary"]), "", *brief_markdown(result.get("brief")), "## 来源与范围", "",
              f"- 来源：{md_text(source['filename'])}",
              f"- 演示数据：{'是；合成生成，不代表真实业务' if source['is_demo'] else '否'}",
              f"- 分析行数：{overview['rows']:,}；字段数：{overview['columns']}；截取：{'是' if source['sampled'] else '否'}",
@@ -218,7 +242,7 @@ def render_html(result, markdown, goal=""):
             cards = '<p>当前数据不适用于本专题，详细原因见覆盖说明。</p>'
         charts.append(f'<section style="grid-column:1/-1" id="topic-{escape(section["key"],quote=True)}"><h2>{escape(section["label"])}</h2><p>{escape(section["description"])}</p><ul>{links}</ul><div class="charts">{cards}</div></section>')
     return f'''<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title}</title>
-<style>{REPORT_STYLE}</style></head><body><main><div class="badge">INSIGHT STUDIO · 离线可用分析报告</div><h1>{title}</h1><p>{escape(result['summary'])}</p><div class="metrics">{metrics}</div>{source_html}<section class="panel"><h2>数据洞察</h2>{insights_html}</section>{narrative_html}<section class="panel"><h2>建议与下一步</h2><ol>{recommendations_html}</ol></section><h2>图表探索</h2><div class="charts">{''.join(charts)}</div><section class="panel"><h2>字段画像</h2><div class="table-wrap"><table><thead><tr><th>字段</th><th>类型</th><th>非缺失唯一值</th><th>缺失率</th><th>均值</th><th>中位数</th></tr></thead><tbody>{column_rows}</tbody></table></div></section><section class="panel"><h2>方法与局限</h2><ul>{methods_html}</ul></section><footer>Insight Studio · 数据探索报告 · 图表库与数据已内嵌，可离线查看</footer></main>
+<style>{REPORT_STYLE}</style></head><body><main><div class="badge">INSIGHT STUDIO · 离线可用分析报告</div><h1>{title}</h1><p>{escape(result['summary'])}</p>{brief_html(result.get('brief'))}<div class="metrics">{metrics}</div>{source_html}<section class="panel"><h2>数据洞察</h2>{insights_html}</section>{narrative_html}<section class="panel"><h2>建议与下一步</h2><ol>{recommendations_html}</ol></section><h2>图表探索</h2><div class="charts">{''.join(charts)}</div><section class="panel"><h2>字段画像</h2><div class="table-wrap"><table><thead><tr><th>字段</th><th>类型</th><th>非缺失唯一值</th><th>缺失率</th><th>均值</th><th>中位数</th></tr></thead><tbody>{column_rows}</tbody></table></div></section><section class="panel"><h2>方法与局限</h2><ul>{methods_html}</ul></section><footer>Insight Studio · 数据探索报告 · 图表库与数据已内嵌，可离线查看</footer></main>
 <script>{get_plotlyjs()}</script>{''.join(scripts)}
 <script>{LAZY_RENDER_JS}</script></body></html>'''
 

@@ -355,6 +355,19 @@ def create_app(settings=None):
     def jobs(request: Request):
         return {"jobs": store.list_jobs(request.state.user["id"])}
 
+    @app.get("/api/uploads/{uid}/schema")
+    def upload_schema(uid: str, selected_file: str, request: Request):
+        upload = store.upload(uid, request.state.user["id"])
+        if not upload:
+            raise HTTPException(404, "未找到上传文件，请重新上传。")
+        try:
+            df, source = read_dataset(Path(upload["path"]), upload["filename"], selected_file,
+                                      settings.max_rows, settings.max_columns)
+            from .explanations import schema_description
+            return schema_description(df, source)
+        except DatasetError as exc:
+            raise HTTPException(400, str(exc)) from exc
+
     @app.post("/api/jobs")
     def create_job(body: JobRequest, request: Request):
         upload = store.upload(body.upload_id, request.state.user["id"])

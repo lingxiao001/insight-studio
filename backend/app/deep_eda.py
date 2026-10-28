@@ -127,8 +127,8 @@ def build_eda(df, kinds, profiles, numeric, identifiers, target, goal):
             excluded.append({"field": name, "reason": "有效数值少于 2 个，仅保留字段画像。"})
         elif name in numeric:
             eligible.append(name)
-    selected = ([target] if target in eligible else []) + [name for name in eligible if name != target]
-    selected = selected[:10]
+    from .explanations import select_numeric_fields
+    selected = select_numeric_fields(df, eligible, target, goal)
     distributions = [all_distributions[name] for name in selected]
     category_candidates = [name for name in df.columns if kinds[name] in {"categorical", "boolean"}
         and name not in identifiers and 1 < df[name].nunique() <= 500
@@ -143,7 +143,7 @@ def build_eda(df, kinds, profiles, numeric, identifiers, target, goal):
              and df[name].notna().sum() >= 2 and df[name].nunique() > 1]
     dates = (([target] if target in date_candidates else []) + [name for name in date_candidates if name != target])[:1]
     selection_notes = [
-        f"从 {len(eligible)} 个合理数值度量中确定性选择 {len(selected)} 个（上限 10，显式关注字段优先，其余按源列顺序）。",
+        f"从 {len(eligible)} 个合理数值度量中确定性选择 {len(selected)} 个（上限 10，关注字段优先；有数值目标时按全候选的目标排序关联选择，其余按源列顺序）。",
         f"类别字段选择 {len(selected_categories)} / {len(category_candidates)} 个合格候选（上限 5；2–500 个类别、有效值至少 5、唯一比例不超过 70%）。",
         "图表候选仅来自已选择字段，不能理解为覆盖所有字段或全部组合；每个专题均预留图表位置，最多 60 图。",
         "缺失、常量与疑似标识符有明确排除原因；每个相关系数至少 5 对完整值只是产品防护阈值，不是可靠性或显著性保证。",
@@ -239,7 +239,13 @@ def build_eda(df, kinds, profiles, numeric, identifiers, target, goal):
                     z=matrix.where(pd.notna(matrix), None).values.tolist(), customdata=counts, zmin=-1,zmax=1,
                     colorscale=[[0,"#778D99"],[.5,"#F1EEE7"],[1,"#8B5055"]],
                     hovertemplate="%{x} × %{y}<br>r=%{z:.3f}<br>成对有效 n=%{customdata}<extra></extra>")), list(matrix.columns))
-    ranked_pairs = sorted(pearson, key=lambda p: (target not in {p["a"],p["b"]}, -abs(p["r"])))
+    from .explanations import question_relevance
+    def scatter_priority(pair):
+        focused = target in {pair["a"], pair["b"]}
+        other = pair["b"] if pair["a"] == target else pair["a"]
+        explicit, course = question_relevance(other, goal) if focused else (0, 0)
+        return not focused, -explicit, -course, -abs(pair["r"])
+    ranked_pairs = sorted(pearson, key=scatter_priority)
     chosen_pairs, used_fields = [], set()
     for pair in ranked_pairs:
         if not chosen_pairs or len({pair["a"], pair["b"]} - used_fields) > 0:

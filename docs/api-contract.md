@@ -152,3 +152,9 @@ Pearson/Spearman 使用成对完整样本，最少 5 对仅作计算防护，不
 模型输出经结构验证和已知高风险文字检查后才添加到结果。未采用时保留统计结果，并通过 `agent.notes` 说明原因、可靠费用状态及没有自动重试。检查不覆盖所有数值、排序或业务语义；未触发规则不等于解释正确。最大输出、提示目标和输入隐私见[Agent 设计](agent-design.md)。
 
 常见错误采用 `{detail:string}`，避免回显密码、密钥、数据内容或内部路径：400 输入或数据问题，401 未登录，403 来源/权限不允许，404 不可访问资源，409 状态冲突，413 过大，422 参数结构，429 登录/注册限流或队列已满。报告尚未生成返回 409，不支持的扩展名返回 404。验证方法见 [testing.md](testing.md)。
+
+## 解释层增量契约
+
+`GET /api/uploads/{upload_id}/schema?selected_file=...`本地读取当前账号的表格，返回columns（name、label、kind、meaning、selectable、suggested）、suggested_target、questions、analyzed_rows、notes。不返回原始行、不创建任务、不调用模型。其他账号返回404，非法成员或不可解析文件返回400。
+
+结果新增可选brief版本1：headline、answer、goal、focus、findings、next_questions、caveats、coverage。finding含id、kind、title、takeaway、explanation、evidence、fields、chart_ids、caveat、n、next_step。coverage含analyzed_rows、numeric_fields_scanned、relationships_evaluated。旧结果缺少brief时继续显示原概览。

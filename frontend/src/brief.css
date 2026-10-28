@@ -1,0 +1,38 @@
+.explanation-brief{max-width:1080px;margin:0 auto 32px;color:#403d37}
+.brief-intro{padding:30px 0 24px;border-bottom:1px solid #d8d3c9}
+.brief-eyebrow{display:flex;align-items:center;gap:8px;color:#7e5555;font-size:12px;letter-spacing:1px}
+.brief-intro h2{font-size:26px;line-height:1.55;font-weight:500;max-width:900px;margin:15px 0}
+.brief-intro>p{font-size:15px;line-height:1.9;max-width:900px;color:#625f59}
+.brief-focus{display:flex;flex-wrap:wrap;gap:10px 25px;margin-top:20px;font-size:12px;color:#736d64}
+.brief-focus strong{font-weight:500;color:#403d37}
+.brief-findings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:24px 0}
+.brief-finding{background:#fffdf8;border:1px solid #ded8cc;border-radius:8px;padding:24px;min-width:0}
+.brief-finding:first-child{grid-column:1/-1;background:#f1f3ec}
+.brief-finding-heading{display:flex;gap:12px;align-items:baseline}
+.brief-number{font:13px Georgia,serif;color:#8b8171}
+.brief-finding h3{font-size:17px;font-weight:500;line-height:1.65;overflow-wrap:anywhere}
+.brief-takeaway{font-size:14px;line-height:1.85;margin-top:14px;color:#403d37}
+.brief-explanation{display:flex;align-items:flex-start;gap:9px;margin-top:16px;color:#625f59}
+.brief-explanation>svg{flex:none;margin-top:4px}
+.brief-explanation p{font-size:12px;line-height:1.9}
+.brief-evidence{margin-top:20px;border-top:1px solid #e4e0d8;padding-top:12px}
+.brief-evidence summary{cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12px;color:#7e5555;list-style:none}
+.brief-evidence summary span{margin-left:auto;color:#736d64;font-size:11px}
+.brief-evidence>div>p{font-size:12px;line-height:1.9;margin-top:12px;overflow-wrap:anywhere}
+.brief-evidence .chart-card{margin-top:16px}
+.brief-next{background:#eee9df;border-radius:8px;padding:24px;margin:24px 0}
+.brief-next h3{font-size:17px;font-weight:500;margin-bottom:14px}
+.brief-next ol{padding-left:20px}.brief-next li{font-size:13px;line-height:1.9;margin:8px 0}
+.brief-scope,.brief-methods{font-size:12px;line-height:1.9;padding:18px 0;border-top:1px solid #ded8cc}
+.brief-scope summary,.brief-methods>summary{cursor:pointer;font-size:13px;color:#625f59}
+.brief-scope ul{padding:12px 20px}.brief-methods>.quality-card{margin:20px 0;max-width:500px}
+.explanation-brief>.button{margin-top:20px}.brief-methods .insight-list{margin-top:24px}
+.question-setup{margin-top:20px}.question-setup select{width:100%;font-size:13px;padding:11px;border:1px solid #d8d3c9;border-radius:5px;background:#fffdf8;color:#403d37}
+.focus-meaning{font-size:11px;color:#736d64;line-height:1.9;margin-top:8px}
+.question-presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.question-presets button{display:flex;align-items:center;gap:6px;border:1px solid #d8d3c9;border-radius:4px;background:#f3f0e8;color:#625f59;font-size:12px;padding:7px 10px;cursor:pointer}
+.question-presets button:hover{background:#e9e3d7}
+.concise-metrics.metrics-grid{gap:22px;padding:12px 0;margin-bottom:12px;background:transparent}
+.concise-metrics .metric-card{padding:6px 12px;border:0;background:transparent}
+.concise-metrics .metric-top{font-size:11px}.concise-metrics .metric-top svg,.concise-metrics .metric-card>p{display:none}
+.concise-metrics .metric-value{font-size:23px;margin-top:4px}
+@media(max-width:760px){.brief-findings{grid-template-columns:1fr}.brief-intro h2{font-size:21px}.brief-intro>p{font-size:13px}.brief-finding{padding:20px}.brief-evidence summary{flex-wrap:wrap}.brief-evidence summary span{margin-left:0}}
