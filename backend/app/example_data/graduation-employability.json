@@ -1,0 +1,325 @@
+{
+  "slug": "graduation-employability",
+  "title": "就业能力：实习成绩能说明什么？",
+  "topic": "就业能力自评",
+  "description": "相比实习成绩，主动学习能力自评与就业能力自评的同步变化更明显",
+  "provenance": {
+    "citation": "Wang, Dongxuan (2025), Graduation, Mendeley Data, V1",
+    "url": "https://data.mendeley.com/datasets/c8ypkyswv3/1",
+    "doi": "10.17632/c8ypkyswv3.1",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "population": "来源描述为河北农业大学2020届计算机专业253名毕业生；本例不代表全国高校。",
+    "preprocessing": "保留253行；原86列中的五期就业指导、七期形势与政策分别取等权均值，得到76列；统一表头，未填补、删行或标准化。",
+    "publication": "公开页和下载报告仅包含聚合统计与解释，未附学生编号、逐行预览或个人散点。代码许可AGPL-3.0与数据许可分别适用。"
+  },
+  "result": {
+    "title": "就业能力：实习成绩能说明什么？",
+    "summary": "在当前样本中，两组排序关联的绝对值分别为0.76和0.30。这有助于区分不同记录提供的信息，不能当作干预效果或预测能力的比较。这是就业能力自评量表，不是实际就业率、薪资或是否拿到录用通知。",
+    "source": {
+      "filename": "Graduation_clean.csv",
+      "is_demo": false,
+      "analyzed_rows": 253,
+      "total_rows": 253,
+      "sampled": false,
+      "sheet": null,
+      "notes": [
+        "文本编码：UTF-8。",
+        "数据来源：Wang, Dongxuan (2025), Graduation, Mendeley Data, V1，DOI 10.17632/c8ypkyswv3.1，CC BY 4.0。",
+        "来源描述为河北农业大学2020届计算机专业253名毕业生；本例不代表全国高校。",
+        "保留253行；原86列中的五期就业指导、七期形势与政策分别取等权均值，得到76列；统一表头，未填补、删行或标准化。",
+        "公开页和下载报告仅包含聚合统计与解释，未附学生编号、逐行预览或个人散点。代码许可AGPL-3.0与数据许可分别适用。",
+        "原始来源：https://data.mendeley.com/datasets/c8ypkyswv3/1",
+        "数据许可：CC BY 4.0；https://creativecommons.org/licenses/by/4.0/"
+      ],
+      "public_example": true
+    },
+    "overview": {
+      "rows": 253,
+      "columns": 76,
+      "numeric_columns": 74,
+      "categorical_columns": 2,
+      "missing_cells": 0,
+      "missing_pct": 0.0,
+      "duplicate_rows": 0,
+      "quality_score": 100
+    },
+    "brief": {
+      "version": 1,
+      "headline": "相比实习成绩，主动学习能力自评与就业能力自评的同步变化更明显",
+      "answer": "在当前样本中，两组排序关联的绝对值分别为0.76和0.30。这有助于区分不同记录提供的信息，不能当作干预效果或预测能力的比较。这是就业能力自评量表，不是实际就业率、薪资或是否拿到录用通知。",
+      "goal": "就业能力自评与实习成绩、主动学习及课程成绩有什么关系？请解释实际含义。",
+      "focus": {
+        "column": "employment_ability_scale",
+        "label": "就业能力自评",
+        "origin": "user",
+        "lower_is_better": false,
+        "meaning": "这是就业能力自评量表，不是实际就业率、薪资或是否拿到录用通知。"
+      },
+      "findings": [
+        {
+          "id": "finding-1",
+          "kind": "overview",
+          "title": "先看懂就业能力自评",
+          "takeaway": "就业能力自评的中位数为83，中间一半记录在78至88之间。",
+          "explanation": "这是就业能力自评量表，不是实际就业率、薪资或是否拿到录用通知。",
+          "evidence": "有效记录 n=253；中位数=83；Q1=78；Q3=88。",
+          "fields": [
+            "employment_ability_scale"
+          ],
+          "chart_ids": [
+            "public-distribution"
+          ],
+          "caveat": "分位区间描述样本分布，不是合格线或理想标准。",
+          "n": 253,
+          "next_step": "先核对这个指标的定义，再阅读关联发现。"
+        },
+        {
+          "id": "finding-2",
+          "kind": "contrast",
+          "title": "实习成绩较高，也可能伴随较低的就业能力自评",
+          "takeaway": "实习成绩不低于92的76条记录中，有10条的就业能力自评不高于78，占13.2%。",
+          "explanation": "两项记录反映的方面并不完全相同。可以先了解这部分记录背后的经历与评价口径，避免用其中一项代替另一项。",
+          "evidence": "成对有效 n=253；分界分别采用该配对子样本的Q3和Q1，包含边界值；交叉计数=10/76。",
+          "fields": [
+            "internship",
+            "employment_ability_scale"
+          ],
+          "chart_ids": [
+            "public-contrast"
+          ],
+          "caveat": "‘较高／较低’仅指本样本的分位划分，不是合格标准，也不代表个人能力诊断。",
+          "n": 253,
+          "next_step": "了解这10条「实习成绩较高、就业能力自评较低」记录背后的经历和评价口径。"
+        },
+        {
+          "id": "finding-3",
+          "kind": "relationship",
+          "title": "实习成绩与就业能力自评在样本中同向变化",
+          "takeaway": "在253条同时有值的记录中，两项排序呈较弱的共同变化。",
+          "explanation": "这表示两项记录在样本中往往一起变化，可作为访谈或复核的切入点。就业能力自评反映主观评价，不能替代实际就业结果。",
+          "evidence": "Spearman ρ=0.3005；成对有效 n=253；扫描73组目标关系，先按问题相关性、再参考关联程度筛选。",
+          "fields": [
+            "internship",
+            "employment_ability_scale"
+          ],
+          "chart_ids": [
+            "public-relationships"
+          ],
+          "caveat": "探索性筛选，未校正多重比较；不是因果效应或经验证的预测能力。",
+          "n": 253,
+          "next_step": "核对「实习成绩」的测量方式，并在独立样本中复核这组关系。"
+        },
+        {
+          "id": "finding-4",
+          "kind": "relationship",
+          "title": "主动学习能力自评与就业能力自评在样本中同向变化",
+          "takeaway": "在253条同时有值的记录中，两项排序呈较强的共同变化。",
+          "explanation": "这表示两项记录在样本中往往一起变化，可作为访谈或复核的切入点。就业能力自评反映主观评价，不能替代实际就业结果。",
+          "evidence": "Spearman ρ=0.7644；成对有效 n=253；扫描73组目标关系，先按问题相关性、再参考关联程度筛选。",
+          "fields": [
+            "active_knowledge_acquisition_scale",
+            "employment_ability_scale"
+          ],
+          "chart_ids": [
+            "public-relationships"
+          ],
+          "caveat": "探索性筛选，未校正多重比较；不是因果效应或经验证的预测能力。",
+          "n": 253,
+          "next_step": "核对「主动学习能力自评」的测量方式，并在独立样本中复核这组关系。"
+        },
+        {
+          "id": "finding-5",
+          "kind": "relationship",
+          "title": "高等数学A2与就业能力自评在样本中同向变化",
+          "takeaway": "在253条同时有值的记录中，两项排序呈中等的共同变化。",
+          "explanation": "这表示两项记录在样本中往往一起变化，可作为访谈或复核的切入点。就业能力自评反映主观评价，不能替代实际就业结果。",
+          "evidence": "Spearman ρ=0.6726；成对有效 n=253；扫描73组目标关系，先按问题相关性、再参考关联程度筛选。",
+          "fields": [
+            "advanced_mathematics_a2",
+            "employment_ability_scale"
+          ],
+          "chart_ids": [
+            "public-relationships"
+          ],
+          "caveat": "探索性筛选，未校正多重比较；不是因果效应或经验证的预测能力。",
+          "n": 253,
+          "next_step": "核对「高等数学A2」的测量方式，并在独立样本中复核这组关系。"
+        }
+      ],
+      "next_questions": [
+        "了解这10条「实习成绩较高、就业能力自评较低」记录背后的经历和评价口径。",
+        "核对「实习成绩」的测量方式，并在独立样本中复核这组关系。",
+        "核对「主动学习能力自评」的测量方式，并在独立样本中复核这组关系。"
+      ],
+      "caveats": [
+        "结论只描述本次读取的记录；共同变化不等于一个因素造成另一个结果。",
+        "这是就业能力自评量表，不是实际就业率、薪资或是否拿到录用通知。"
+      ],
+      "coverage": {
+        "analyzed_rows": 253,
+        "numeric_fields_scanned": 74,
+        "relationships_evaluated": 73
+      }
+    },
+    "charts": [
+      {
+        "id": "public-distribution",
+        "title": "就业能力自评的分布",
+        "description": "253条有效记录的分箱计数。",
+        "type": "histogram",
+        "fields": [
+          "就业能力自评"
+        ],
+        "figure": {
+          "data": [
+            {
+              "type": "bar",
+              "x": [
+                "60–64.875（不含右端）",
+                "64.875–69.75（不含右端）",
+                "69.75–74.625（不含右端）",
+                "74.625–79.5（不含右端）",
+                "79.5–84.375（不含右端）",
+                "84.375–89.25（不含右端）",
+                "89.25–94.125（不含右端）",
+                "94.125–99（含右端）"
+              ],
+              "y": [
+                4,
+                9,
+                15,
+                44,
+                73,
+                72,
+                22,
+                14
+              ],
+              "orientation": "v"
+            }
+          ],
+          "layout": {
+            "xaxis": {
+              "title": {
+                "text": "区间 / 分组"
+              }
+            },
+            "yaxis": {
+              "title": {
+                "text": "记录数"
+              }
+            }
+          }
+        },
+        "sample_notes": [
+          "仅展示聚合统计。关联不表示因果；分位划分不表示合格标准。"
+        ]
+      },
+      {
+        "id": "public-relationships",
+        "title": "主要发现对应的排序关联",
+        "description": "每组均使用253条成对有效记录；数值保留四位小数。自评量表的同步变化不等于实际就业结果。",
+        "type": "spearman",
+        "fields": [
+          "实习成绩",
+          "主动学习能力自评",
+          "高等数学A2",
+          "就业能力自评"
+        ],
+        "figure": {
+          "data": [
+            {
+              "type": "bar",
+              "x": [
+                0.3005,
+                0.7644,
+                0.6726
+              ],
+              "y": [
+                "实习成绩",
+                "主动学习能力自评",
+                "高等数学A2"
+              ],
+              "orientation": "h"
+            }
+          ],
+          "layout": {
+            "xaxis": {
+              "title": {
+                "text": "Spearman 排序相关"
+              }
+            },
+            "yaxis": {
+              "title": {
+                "text": ""
+              }
+            }
+          }
+        },
+        "sample_notes": [
+          "仅展示聚合统计。关联不表示因果；分位划分不表示合格标准。"
+        ]
+      },
+      {
+        "id": "public-contrast",
+        "title": "实习成绩较高组中的就业能力自评分布",
+        "description": "分母是实习成绩≥92的76条记录；就业能力自评≤78的有10条。包含分位边界值。",
+        "type": "group_comparison",
+        "fields": [
+          "实习成绩",
+          "就业能力自评"
+        ],
+        "figure": {
+          "data": [
+            {
+              "type": "bar",
+              "x": [
+                "就业能力自评≤78",
+                "就业能力自评>78"
+              ],
+              "y": [
+                10,
+                66
+              ],
+              "orientation": "v"
+            }
+          ],
+          "layout": {
+            "xaxis": {
+              "title": {
+                "text": "区间 / 分组"
+              }
+            },
+            "yaxis": {
+              "title": {
+                "text": "记录数"
+              }
+            }
+          }
+        },
+        "sample_notes": [
+          "仅展示聚合统计。关联不表示因果；分位划分不表示合格标准。"
+        ]
+      }
+    ],
+    "columns": [],
+    "insights": [],
+    "recommendations": [
+      "了解这10条「实习成绩较高、就业能力自评较低」记录背后的经历和评价口径。",
+      "核对「实习成绩」的测量方式，并在独立样本中复核这组关系。",
+      "核对「主动学习能力自评」的测量方式，并在独立样本中复核这组关系。"
+    ],
+    "preview": {
+      "columns": [],
+      "rows": []
+    },
+    "agent": {
+      "mode": "statistical",
+      "model": null,
+      "notes": [
+        "预先计算的公开聚合示例，浏览与下载不创建任务、不调用模型。"
+      ]
+    },
+    "duration_seconds": 0
+  }
+}

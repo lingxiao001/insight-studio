@@ -26,6 +26,7 @@ from .config import Settings
 from .ingest import DatasetError, demo_dataset, inspect_upload, read_dataset
 from .llm import enrich
 from .report import save_reports
+from .public_examples import PUBLIC_PATHS, router as examples_router
 from .store import Store
 
 logger = logging.getLogger("insight-studio")
@@ -208,6 +209,7 @@ def create_app(settings=None):
     app = FastAPI(title="Insight Studio", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
     app.state.store, app.state.manager, app.state.settings = store, manager, settings
     app.state.ledger, app.state.auth = ledger, auth
+    app.include_router(examples_router)
     app.add_middleware(UploadLimitMiddleware, max_bytes=settings.max_upload_bytes)
     app.add_middleware(CORSMiddleware, allow_origins=sorted(DEV_ORIGINS), allow_credentials=True,
                        allow_methods=["GET", "POST", "DELETE"], allow_headers=["Content-Type"])
@@ -246,7 +248,8 @@ def create_app(settings=None):
                 if not same_origin and not (api_local and origin in DEV_ORIGINS):
                     return JSONResponse({"detail": "请求来源不受信任，请从系统页面发起操作。"}, 403)
         public = {"/api/health", "/api/session", "/api/login", "/api/register", "/api/logout"}
-        if path.startswith("/api/") and path not in public and request.method != "OPTIONS" and not request.state.user:
+        public_example = request.method == "GET" and path in PUBLIC_PATHS
+        if path.startswith("/api/") and path not in public and not public_example and request.method != "OPTIONS" and not request.state.user:
             return JSONResponse({"detail": "请先登录账号。"}, 401)
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -354,6 +357,19 @@ def create_app(settings=None):
     @app.get("/api/jobs")
     def jobs(request: Request):
         return {"jobs": store.list_jobs(request.state.user["id"])}
+
+    @app.get("/api/uploads/{uid}/schema")
+    def upload_schema(uid: str, selected_file: str, request: Request):
+        upload = store.upload(uid, request.state.user["id"])
+        if not upload:
+            raise HTTPException(404, "未找到上传文件，请重新上传。")
+        try:
+            df, source = read_dataset(Path(upload["path"]), upload["filename"], selected_file,
+                                      settings.max_rows, settings.max_columns)
+            from .explanations import schema_description
+            return schema_description(df, source)
+        except DatasetError as exc:
+            raise HTTPException(400, str(exc)) from exc
 
     @app.post("/api/jobs")
     def create_job(body: JobRequest, request: Request):

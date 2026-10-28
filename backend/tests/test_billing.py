@@ -102,7 +102,9 @@ def test_authorization_requires_valid_key_and_preserves_audit(ledger, monkeypatc
         if key != KEY: raise BudgetError("密钥验证失败")
         import hashlib
         return hashlib.sha256(key.encode()).hexdigest()
-    monkeypatch.setattr(ledger, "verify_key", validate)
+    # The account wrapper forwards assignment but not deletion; patch the owner
+    # so pytest restores inherited methods correctly during teardown.
+    monkeypatch.setattr(ledger._ledger, "verify_key", validate)
     with pytest.raises(BudgetError): ledger.authorize("invalid-key")
     assert ledger.usage()["spent_usd"] == .001
     usage = ledger.authorize(KEY)
@@ -120,7 +122,7 @@ def test_authorization_requires_valid_key_and_preserves_audit(ledger, monkeypatc
 def test_reauthorization_rejected_during_inflight_request(ledger, monkeypatch):
     ledger = ledger.for_user(ledger.store.admin_user()["id"])
     one_reservation(ledger)
-    monkeypatch.setattr(ledger, "verify_key", lambda key: "validated")
+    monkeypatch.setattr(ledger._ledger, "verify_key", lambda key: "validated")
     with pytest.raises(BudgetError, match="正在结算"): ledger.authorize(KEY)
     with ledger.store.connect() as db:
         assert db.execute("SELECT COUNT(*) FROM budget_epochs").fetchone()[0] == 1
@@ -227,7 +229,7 @@ def test_admin_key_change_cannot_restore_ordinary_budget_or_erase_holds(ledger, 
     rid = one_reservation(ledger)
     ledger.uncertain(rid, "unknown cost")
     before = ledger.usage()
-    monkeypatch.setattr(ledger, "verify_key", lambda key: "validated-test-key")
+    monkeypatch.setattr(ledger._ledger, "verify_key", lambda key: "validated-test-key")
     admin.authorize(KEY)
     after = ledger.usage()
     assert after == before
@@ -245,7 +247,7 @@ def test_admin_key_change_cannot_restore_ordinary_budget_or_erase_holds(ledger, 
 
 
 def test_ordinary_user_cannot_authorize_even_with_a_valid_key(ledger, monkeypatch):
-    monkeypatch.setattr(ledger, "verify_key", lambda key: pytest.fail("ordinary user must not validate a shared key"))
+    monkeypatch.setattr(ledger._ledger, "verify_key", lambda key: pytest.fail("ordinary user must not validate a shared key"))
     with pytest.raises(BudgetError, match="只有管理员"):
         ledger.authorize(KEY)
     with ledger.store.connect() as db:
@@ -254,8 +256,8 @@ def test_ordinary_user_cannot_authorize_even_with_a_valid_key(ledger, monkeypatc
 
 def test_exhausted_user_never_contacts_catalog_or_reads_model_key(ledger, monkeypatch):
     set_committed_spend(ledger, 1_000_000)
-    monkeypatch.setattr(ledger, "verify_catalog", lambda: pytest.fail("exhausted account must not contact provider"))
-    monkeypatch.setattr(ledger, "credential", lambda epoch: pytest.fail("exhausted account must not read provider key"))
+    monkeypatch.setattr(ledger._ledger, "verify_catalog", lambda: pytest.fail("exhausted account must not contact provider"))
+    monkeypatch.setattr(ledger._ledger, "credential", lambda epoch: pytest.fail("exhausted account must not read provider key"))
     with pytest.raises(BudgetError, match="额度不足"):
         one_reservation(ledger)
 
@@ -292,7 +294,7 @@ def test_request_owner_must_match_job_and_inflight_other_user_blocks_key_change(
     rid, _ = ledger.prepare([], job["id"])
     with ledger.store.connect() as db:
         assert db.execute("SELECT user_id FROM model_requests WHERE id=?", (rid,)).fetchone()[0] == ledger.user_id
-    monkeypatch.setattr(ledger, "verify_key", lambda key: "validated-test-key")
+    monkeypatch.setattr(ledger._ledger, "verify_key", lambda key: "validated-test-key")
     with pytest.raises(BudgetError, match="正在结算"):
         admin.authorize(KEY)
 

@@ -1,6 +1,6 @@
 # API 契约
 
-所有业务接口使用 `/api`，JSON 字段为 snake_case。除健康检查、会话、登录、注册和退出外均需账号会话。账号 Cookie 不作为 URL 参数传递。对浏览器非只读 API 请求检查 Origin；开发代理只在本地允许指定的 Vite 来源。
+所有业务接口使用 `/api`，JSON 字段为 snake_case。除健康检查、会话、登录、注册、退出及下述固定公开示例的GET接口外均需账号会话。账号 Cookie 不作为 URL 参数传递。对浏览器非只读 API 请求检查 Origin；开发代理只在本地允许指定的 Vite 来源。
 
 上传、任务、下载和用量均按当前账号过滤，其他账号的资源 ID 返回 404。管理员只能配置共享模型，不因此获得普通报告接口的跨账号读取权限。已保存密钥永不通过 API 回传。
 
@@ -15,6 +15,17 @@
 | `POST /api/logout` | 删除会话 Cookie，返回 `{ok:true}` |
 
 登录与注册要求严格字符串，额外字段返回 422。注册账号规范与限流见[账号说明](accounts-and-quotas.md)。`model_enabled` 表示配置能力，不等于当前用户有可用费用；启用模型前还应成功读取用量且未锁定。
+
+## 公开分析示例
+
+| 方法与路径 | 输入或返回 |
+| --- | --- |
+| `GET /api/examples` | `{examples:[{slug,title,description,topic}]}` |
+| `GET /api/examples/{slug}` | `{slug,title,description,topic,provenance,result}` |
+| `GET /api/examples/{slug}/report.md` | 公开聚合快照的Markdown下载 |
+| `GET /api/examples/{slug}/report.html` | 公开聚合快照的离线HTML下载 |
+
+仅`graduation-employability`、`graduation-academic`两个固定slug的上述GET请求免登录。`provenance`含原始来源链接、DOI、许可、样本范围、预处理和公开内容说明。`result`沿用结果格式，但没有`eda`、逐行预览或字段画像，图表只包含聚合分箱、相关系数和交叉计数。浏览与下载不创建任务、不调用模型，也不读取任何账号的上传或报告目录。网站入口为`/?view=examples`和`/?example={slug}`。
 
 ## 上传、任务与报告
 
@@ -152,3 +163,9 @@ Pearson/Spearman 使用成对完整样本，最少 5 对仅作计算防护，不
 模型输出经结构验证和已知高风险文字检查后才添加到结果。未采用时保留统计结果，并通过 `agent.notes` 说明原因、可靠费用状态及没有自动重试。检查不覆盖所有数值、排序或业务语义；未触发规则不等于解释正确。最大输出、提示目标和输入隐私见[Agent 设计](agent-design.md)。
 
 常见错误采用 `{detail:string}`，避免回显密码、密钥、数据内容或内部路径：400 输入或数据问题，401 未登录，403 来源/权限不允许，404 不可访问资源，409 状态冲突，413 过大，422 参数结构，429 登录/注册限流或队列已满。报告尚未生成返回 409，不支持的扩展名返回 404。验证方法见 [testing.md](testing.md)。
+
+## 解释层增量契约
+
+`GET /api/uploads/{upload_id}/schema?selected_file=...`本地读取当前账号的表格，返回columns（name、label、kind、meaning、selectable、suggested）、suggested_target、questions、analyzed_rows、notes。不返回原始行、不创建任务、不调用模型。其他账号返回404，非法成员或不可解析文件返回400。
+
+结果新增可选brief版本1：headline、answer、goal、focus、findings、next_questions、caveats、coverage。finding含id、kind、title、takeaway、explanation、evidence、fields、chart_ids、caveat、n、next_step。coverage含analyzed_rows、numeric_fields_scanned、relationships_evaluated。旧结果缺少brief时继续显示原概览。

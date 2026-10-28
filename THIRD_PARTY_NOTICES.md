@@ -44,6 +44,18 @@ its certificate material retain their MPL terms.
 
 ## Public dataset used in examples
 
+The built-in Graduation examples contain aggregate statistics derived from:
+Wang, Dongxuan (2025), “Graduation”, Mendeley Data, V1,
+DOI [10.17632/c8ypkyswv3.1](https://data.mendeley.com/datasets/c8ypkyswv3/1),
+licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+The derivative uses 253 records and 76 prepared fields: five career-guidance
+columns and seven situation/policy columns were replaced by their respective
+equal-weight means, with normalized headers. No rows were removed, imputed,
+or standardized. Only aggregate snapshots, not student-level records, are
+bundled under `backend/app/example_data/`. Preserve this attribution and
+change notice when redistributing these snapshots. See
+[case details](docs/explanatory-analysis.md).
+
 Screenshots use **New York City Airbnb Open Data**, published on Kaggle by
 `dgomonov`, version 3. The publisher credits Inside Airbnb as the original
 source. No original CSV, ZIP, host-name records or private user datasets are

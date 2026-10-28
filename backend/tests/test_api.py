@@ -45,6 +45,21 @@ def create(client, upload):
     return response.json()
 
 
+def test_upload_schema_is_owned_validated_and_does_not_start_analysis(client):
+    item = upload(client, b"student_id,gpa_rank,internship\nA1,1,95\nA2,2,85\nA3,3,80\nA4,4,75\nA5,5,70\n")
+    url = f"/api/uploads/{item['upload_id']}/schema"
+    response = client.get(url, params={"selected_file":"sample.csv"})
+    assert response.status_code == 200
+    schema = response.json()
+    assert schema["suggested_target"] == "gpa_rank"
+    assert schema["questions"][0]["target"] == "gpa_rank"
+    assert not next(c for c in schema["columns"] if c["name"] == "student_id")["selectable"]
+    assert client.get("/api/jobs").json()["jobs"] == []
+    assert client.get(url, params={"selected_file":"../other.csv"}).status_code == 400
+    assert client.post("/api/register",json={"username":"schema_other","password":"a-safe-schema-password"}).status_code == 200
+    assert client.get(url,params={"selected_file":"sample.csv"}).status_code == 404
+
+
 def test_session_auth_cookie_logout_and_csrf(settings):
     with TestClient(create_app(settings)) as c:
         assert c.get("/api/health").json() == {"status": "ok"}

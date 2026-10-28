@@ -298,20 +298,24 @@ def analyze(df, source, goal, target, progress):
     if any(df[name].dropna().abs().gt(1e150).any() for name in df.select_dtypes(include=["number"]).columns):
         raise DatasetError("部分数值的绝对值超过安全分析范围（1e150），请先缩放计量单位后重新上传。")
     kinds = detect_types(df)
+    from .explanations import choose_focus, build_brief, is_rank
+    if target and target not in df.columns:
+        source["notes"].append("指定的目标字段不存在，本次使用自动字段选择。")
+    target, focus_origin = choose_focus(df, goal, target)
+    if focus_origin == "auto":
+        source["notes"].append(f"已根据字段和问题自动关注「{target}」，可在新建分析时更换。")
     profiles = column_profiles(df, kinds)
-    excluded = [name for name in df.columns if is_identifier(name, df[name])]
+    excluded = [name for name in df.columns if is_identifier(name, df[name]) and not is_rank(name)]
     if target in excluded and kinds[target] == "numeric":
         if not IDENTIFIER_NAME.search(target):
             # An explicit business metric takes precedence over the weaker
             # monotonic-integer heuristic, while named IDs stay excluded.
             excluded.remove(target)
-            source["notes"].append(f"「{target}」虽为单调唯一整数，已按用户明确选择的关注字段保留为数值度量。")
+            selection = "用户明确选择" if focus_origin == "user" else "自动识别的指标含义"
+            source["notes"].append(f"「{target}」虽为单调唯一整数，已按{selection}的关注字段保留为数值度量。")
         else:
             source["notes"].append(f"关注字段「{target}」名称疑似标识符，仍只保留在字段画像与预览中，不参与数值关系分析；请核对业务含义。")
     numeric = [name for name in df.columns if kinds[name] == "numeric" and name not in excluded]
-    if target and target not in df.columns:
-        source["notes"].append("指定的目标字段不存在，本次使用自动字段选择。")
-        target = None
     progress("quality", "检查缺失值、完整重复记录和 IQR 极端值。")
     overview, outliers = quality_analysis(df, profiles, numeric)
     progress("charts", "分七个专题计算分布、缺失模式、分组比较、多指标时间趋势与两种相关关系。")
@@ -321,6 +325,7 @@ def analyze(df, source, goal, target, progress):
     progress("insights", "根据统计证据生成洞察及下一步建议。")
     insights, recommendations = statistical_insights(df, profiles, overview, outliers, pairs, numeric, excluded, target, goal)
     insights = (insights + deeper_insights(eda))[:24]
+    brief, explanation_evidence = build_brief(df, kinds, target, focus_origin, goal, charts, source)
     summary = (f"本次分析 {len(df):,} 行、{len(df.columns)} 个字段，识别到 {overview['numeric_columns']} 个数值字段，"
                f"缺失率 {overview['missing_pct']:.2f}%，完全重复记录 {overview['duplicate_rows']:,} 行。"
                f"已按七个分析专题生成 {len(charts)} 张统计图；具体字段选择、抽样与不适用原因见覆盖说明。")
@@ -328,7 +333,7 @@ def analyze(df, source, goal, target, progress):
         summary = "此报告使用合成零售演示数据。" + summary
     result = {"title": "合成零售数据探索报告" if source["is_demo"] else "数据探索分析报告",
               "summary": summary, "source": source, "overview": overview, "columns": profiles,
-              "charts": charts, "eda": eda, "insights": insights, "recommendations": recommendations,
+              "charts": charts, "eda": eda, "brief": brief, "insights": insights, "recommendations": recommendations,
               "preview": {"columns": list(df.columns), "rows": [[scalar(v) for v in row] for row in df.head(12).itertuples(index=False, name=None)]},
               "agent": {"mode": "statistical", "model": None,
                         "notes": ["统计分析由固定 Python 分析步骤执行；未执行模型生成代码。", "所有统计均基于本次分析行；散点图若抽样会单独标明。", "数值相关性不代表因果关系；IQR 结果不等同于错误数据。"]},
@@ -337,4 +342,5 @@ def analyze(df, source, goal, target, progress):
     aggregates = {"overview": overview, "columns": profiles[:80], "correlations": pairs[:8],
                   "outliers": dict(list(outliers.items())[:10]), "excluded_identifiers": excluded[:20],
                   "eda_evidence": model_evidence(eda)}
+    aggregates["explanation_evidence"] = explanation_evidence
     return result, aggregates

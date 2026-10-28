@@ -21,7 +21,19 @@ export type Result = {
   insights: { title: string; body: string; level: 'info' | 'warning' | 'success'; evidence: string }[];
   recommendations: string[]; preview: { columns: string[]; rows: unknown[][] };
   agent: { mode: 'statistical' | 'llm'; model: string | null; notes: string[]; narrative?: string | null };
-  duration_seconds: number; eda?: Eda | null;
+  duration_seconds: number; eda?: Eda | null; brief?: ExplanationBrief | null;
+};
+export type UploadSchema = {
+  columns: { name: string; label: string; kind: string; meaning: string; selectable: boolean; suggested: boolean }[];
+  suggested_target: string | null; analyzed_rows: number; notes: string[];
+  questions: {label: string; target: string | null; goal: string}[];
+};
+export type ExplanationBrief = {
+  version: number; headline: string; answer: string; goal: string;
+  focus: {column: string | null; label: string | null; origin: string; lower_is_better: boolean; meaning: string};
+  findings: {id: string; kind: string; title: string; takeaway: string; explanation: string; evidence: string; caveat: string; n: number; fields: string[]; chart_ids: string[]; next_step: string}[];
+  next_questions: string[]; caveats: string[];
+  coverage: {analyzed_rows: number; numeric_fields_scanned: number; relationships_evaluated: number};
 };
 export type Job = {
   id: string; filename: string; created_at: string; status: 'queued' | 'running' | 'completed' | 'failed'; progress: number;
