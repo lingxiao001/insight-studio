@@ -9,9 +9,11 @@ from app.explanations import choose_focus, schema_description
 from app.report import render_html, render_markdown
 
 
-def run(df, goal="", target=None):
+def run(df, goal="", target=None, context=None):
     source = {"filename":"students.csv", "is_demo":False, "analyzed_rows":len(df),
               "total_rows":len(df), "sampled":False, "sheet":None, "notes":[]}
+    if context is not None:
+        source["analysis_context"] = context
     return analyze(df.copy(), source, goal, target, lambda *args:None)
 
 
@@ -216,12 +218,173 @@ def test_bounded_question_answers_disclose_unanswered_comparisons():
     assert all(set(item["finding_ids"]) <= finding_ids for item in brief["question_answers"])
 
 
-def test_named_category_distinguishes_method_scope_from_sample_shortage():
+def test_named_category_compares_numeric_means_and_medians_with_exact_support():
     df = pd.DataFrame({"score": np.sin(np.arange(60)), "gender": ["a", "b"] * 30})
     result, aggregates = run(df, "性别与成绩有什么关系", "score")
     item = result["brief"]["question_answers"][0]
-    assert item["status"] == "partial" and item["status_label"] == "当前方法不适用"
+    assert item["status"] == "supported" and item["method"] == "group_summary"
     assert item["n"] == 60 and item["rho"] is None
-    assert "未做类别间差异比较" in item["explanation"]
+    assert "中位数" in item["explanation"] and "均值" in item["answer"]
+    assert sorted(g["n"] for g in item["groups"]) == [30, 30]
     assert "样本不足" not in item["answer"] and "样本不足" not in item["explanation"]
-    assert aggregates["explanation_evidence"]["question_answers"][0]["method"] == "not_applicable"
+    assert aggregates["explanation_evidence"]["question_answers"][0]["method"] == "group_summary"
+
+
+def test_event_rate_requires_explicit_encoding_and_uses_percentage_points():
+    df = pd.DataFrame({"outcome": [0]*10+[1]*30+[0]*30+[1]*10,
+                       "region": ["private-region-a"]*40+["private-region-b"]*40})
+    context = {"domain": "finance", "event": {"column": "outcome", "value": 0, "label": "已记录违约"},
+               "field_definitions": {"outcome": {"label": "历史记录状态", "meaning": "此样本的历史状态"}}}
+    result, aggregate = run(df, "region 与 outcome", "outcome", context)
+    item = result["brief"]["question_answers"][0]
+    assert item["method"] == "event_rate" and item["status"] == "supported"
+    assert result["brief"]["headline"] == "按region分组，已记录违约比例相差50.0个百分点"
+    assert item["difference_pp"] == pytest.approx(50)
+    assert sorted((g["events"], g["n"]) for g in item["groups"]) == [(10,40),(30,40)]
+    assert "个百分点" in item["answer"] and "30/40" in item["answer"]
+    assert "投资建议" in item["caveat"] and "不能认定因果" in item["caveat"]
+    assert result["brief"]["focus"]["label"] == "历史记录状态"
+    assert aggregate["explanation_evidence"]["event"]["count"] == 40
+    assert "private-region" not in json.dumps(aggregate, ensure_ascii=False)
+    assert "G01" in json.dumps(aggregate)
+
+
+def test_binary_codes_are_not_silently_given_event_meanings_and_invalid_metadata_abstains():
+    df = pd.DataFrame({"outcome": [0,1]*40, "category": ["a"]*40+["b"]*40})
+    for context in ({}, {"event": {"column": "outcome", "value": 2, "label": "发生死亡"}}):
+        result, aggregate = run(df, "category 与 outcome", "outcome", context)
+        brief = result["brief"]
+        assert brief["focus"]["kind"] == "categorical"
+        assert "不会把1自动解释" in brief["findings"][0]["explanation"]
+        assert brief["question_answers"][0]["method"] == "category_share"
+        assert "event" not in aggregate["explanation_evidence"]
+        assert "发生死亡" not in brief["answer"]
+    # Context is request-local, including labels and business semantics.
+    assert "原始" in result["brief"]["answer"]
+
+
+def test_event_rates_keep_missing_rows_small_groups_and_duplicate_indices_exact():
+    df = pd.DataFrame({"outcome": [1]*20+[0]*20+[1]*4+[None]*6,
+                       "group": ["a"]*20+["b"]*20+["small"]*4+["missing"]*6}, index=[0]*50)
+    context = {"event": {"column": "outcome", "value": 1, "label": "目标事件"}}
+    result, _ = run(df, "group 与 outcome", "outcome", context)
+    item = result["brief"]["question_answers"][0]
+    assert item["n"] == 44 and sum(g["n"] for g in item["groups"]) == 44
+    assert "6条记录" in item["evidence"] and "1组共4条" in item["evidence"]
+    assert item["difference_pp"] == pytest.approx(100)
+    assert next(g for g in item["groups"] if g["label"] == "small")["supported"] is False
+
+
+def test_numeric_event_groups_explain_actual_quartile_boundaries_and_small_support():
+    df = pd.DataFrame({"outcome": [0,1]*40, "age": np.tile(np.arange(20,60),2)})
+    context = {"domain": "health", "event": {"column": "outcome", "value": 1, "label": "随访期记录事件"}}
+    result, _ = run(df, "age 与 outcome", "outcome", context)
+    item = result["brief"]["question_answers"][0]
+    assert len(item["groups"]) == 4 and all(g["n"] == 20 for g in item["groups"])
+    assert item["groups"][0]["label"] == "20 至29.75（含两端）"
+    assert item["groups"][1]["label"] == "大于29.75 至39.5（含上界）"
+    assert "实际分界=" in item["evidence"] and "左开右闭" in item["evidence"]
+    assert "不是个体诊断" in item["caveat"]
+    tiny = df.iloc[:12]
+    result, _ = run(tiny, "age 与 outcome", "outcome", context)
+    assert result["brief"]["question_answers"][0]["status"] == "insufficient"
+
+
+def test_quartile_groups_are_displayed_in_numeric_order_despite_original_row_order():
+    df = pd.DataFrame({"outcome": [0,1]*40, "age": np.tile(np.arange(20,60),2)})
+    df = df.sample(frac=1, random_state=21)
+    context = {"event": {"column": "outcome", "value": 1, "label": "事件"}}
+    result, _ = run(df, "age 与 outcome", "outcome", context)
+    groups = result["brief"]["question_answers"][0]["groups"]
+    assert [g["label"] for g in groups] == ["20 至29.75（含两端）", "大于29.75 至39.5（含上界）",
+                                            "大于39.5 至49.25（含上界）", "大于49.25 至59（含上界）"]
+
+
+def test_post_outcome_fields_are_excluded_and_named_question_explains_why():
+    df = pd.DataFrame({"outcome": [0,1]*40, "time": np.tile(np.arange(20,60),2),
+                       "group": ["a"]*40+["b"]*40})
+    context = {"domain": "health", "event": {"column": "outcome", "value": 1, "label": "随访期记录事件"},
+               "exclude_fields": {"time": "随访时长是在结果观察过程中形成，不能作为入组时的预测依据。"}}
+    result, aggregate = run(df, "time 和 group 与 outcome", "outcome", context)
+    item = result["brief"]["question_answers"][0]
+    assert item["method"] == "excluded" and item["status"] == "insufficient"
+    assert "随访时长是在结果观察过程中形成" in item["explanation"]
+    assert not item["groups"] and item["rho"] is None
+    assert all("time" not in f["fields"] for f in result["brief"]["findings"])
+    assert result["brief"]["coverage"]["group_comparisons_evaluated"] == 1
+    assert aggregate["explanation_evidence"]["question_answers"][0]["method"] == "excluded"
+    assert all(c["name"] != "time" for c in aggregate["columns"])
+    assert all("time" not in (p["a"],p["b"]) for p in aggregate["correlations"])
+    assert all(d["column"] != "time" for d in aggregate["eda_evidence"]["distributions"])
+    assert "time" not in aggregate["outliers"]
+    assert all(s["metric"] != "time" and s["category"] != "time" for s in aggregate["eda_evidence"]["groups"])
+    assert all("time" not in (p["a"],p["b"]) for p in aggregate["eda_evidence"]["correlations"]["spearman"])
+    assert any("time" in chart["fields"] for chart in result["charts"])  # Local basic EDA is retained.
+    assert aggregate["excluded_explanatory_fields"][0]["field"] == "time"
+
+
+def test_context_labels_do_not_leak_to_other_requests_and_categories_are_selectable():
+    df = pd.DataFrame({"duration": np.tile([80.,90.,110.,120.],20), "type": ["Movie"]*40+["TV Show"]*40})
+    context = {"domain": "entertainment", "field_definitions": {"duration": {"label": "电影片长", "meaning": "仅电影，单位分钟"}}}
+    result, _ = run(df, "type 与 duration", "duration", context)
+    assert result["brief"]["focus"]["label"] == "电影片长"
+    assert "仅电影" in result["brief"]["focus"]["meaning"]
+    other, _ = run(df, "type 与 duration", "duration")
+    assert other["brief"]["focus"]["label"] == "duration"
+    schema = schema_description(df, {"notes": [], "analysis_context": context})
+    assert next(c for c in schema["columns"] if c["name"] == "type")["selectable"]
+    assert choose_focus(df, "explain type")[0] == "type"
+
+
+def test_two_named_numeric_target_categories_do_not_invoke_rho_strength_comparison():
+    df = pd.DataFrame({"score": np.sin(np.arange(80)), "first": ["a"]*40+["b"]*40,
+                       "second": ["c","d"]*40})
+    result, _ = run(df, "first 和 second", "score")
+    assert len(result["brief"]["question_answers"]) == 2
+    assert all(item["rho"] is None for item in result["brief"]["question_answers"])
+
+
+def test_context_focus_labels_and_explicit_group_value_labels_are_respected():
+    df = pd.DataFrame({"result": [0,1]*40, "contract": [0]*40+[1]*40})
+    context = {"field_definitions": {"result": {"label": "实际取消记录"},
+                                      "contract": {"label": "合约方式", "value_labels": {"0": "标准合约", "1": "特殊合约"}}},
+               "categorical_fields": ["contract"],
+               "event": {"column": "result", "value": 1, "label": "取消"}}
+    result, _ = run(df, "实际取消记录与合约方式", context=context)
+    assert result["brief"]["focus"]["column"] == "result"
+    assert result["brief"]["question_answers"][0]["groups"][0]["label"] == "标准合约"
+
+
+def test_group_exports_include_all_counts_status_and_escape_labels():
+    df = pd.DataFrame({"result": [1]*20+[0]*20+[1]*3,
+                       "group": ["<script>alert(1)</script>"]*20+["b"]*20+["small"]*3})
+    context = {"event": {"column": "result", "value": 1, "label": "目标事件"}}
+    result, _ = run(df, "group 与 result", "result", context)
+    markdown = render_markdown(result, "")
+    html = render_html(result, markdown, "")
+    assert "分组依据" in markdown and "事件数" in markdown and "不足20条" in markdown
+    assert "样本分组比较" in html and "B03" in html
+    assert "<script>alert(1)</script>" not in html and "&lt;script&gt;alert(1)&lt;/script&gt;" in html
+
+
+def test_unknown_string_event_value_never_enters_model_payload():
+    df = pd.DataFrame({"result": ["private-event-value", "other"]*40, "group": ["a"]*40+["b"]*40})
+    context = {"event": {"column": "result", "value": "private-event-value", "label": "来源明确事件"}}
+    _, aggregate = run(df, "group 与 result", "result", context)
+    assert "private-event-value" not in json.dumps(aggregate, ensure_ascii=False)
+
+
+def test_explicit_numeric_category_codes_use_groups_not_continuous_correlations():
+    df = pd.DataFrame({"score": np.tile([60.,70.,80.],30), "education": np.tile([1,2,3],30),
+                       "other": np.tile([3.,1.,2.],30)})
+    context = {"categorical_fields": ["education"]}
+    result, aggregate = run(df, "education 和 score", "score", context)
+    item = result["brief"]["question_answers"][0]
+    assert item["method"] == "group_summary" and item["rho"] is None
+    assert len(item["groups"]) == 3 and all(g["n"] == 30 for g in item["groups"])
+    assert all(p["field"] != "education" for p in aggregate["explanation_evidence"]["target_relationships"])
+    assert all("education" not in (p["a"],p["b"]) for p in aggregate["correlations"])
+    assert all("education" not in (p["a"],p["b"]) for p in aggregate["eda_evidence"]["correlations"]["spearman"])
+    assert "education" not in result["eda"]["coverage"]["selected_numeric_fields"]
+    assert "education" in result["eda"]["coverage"]["selected_categorical_fields"]
+    assert result["brief"]["headline"] == "按education分组，score均值有所不同"

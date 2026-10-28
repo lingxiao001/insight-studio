@@ -1,0 +1,494 @@
+{
+  "slug": "netflix-catalog",
+  "title": "Netflix片库：电影和剧集怎么分？",
+  "description": "8,807条历史Netflix作品目录，6,131部电影和2,676部剧集；不是观看行为调查。",
+  "finding": "8,807条有效记录中，电影条目有6,131条，占69.6%。",
+  "domain": "娱乐",
+  "topic": "历史片库",
+  "provenance": {
+    "citation": "Shivam Bansal, Netflix Movies and TV Shows, Kaggle, V5",
+    "url": "https://www.kaggle.com/datasets/shivamb/netflix-shows",
+    "license": "CC0: Public Domain",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "kaggle_url": "https://www.kaggle.com/datasets/shivamb/netflix-shows",
+    "dataset_version": 5,
+    "accessed_at": "2026-10-28",
+    "source_sha256": "df1f4ad2027a5a14c3a33932ef0d4054565ff88adf92b7f263601b70fdc6f3f3",
+    "population": "8,807条历史Netflix作品目录，6,131部电影和2,676部剧集；不是观看行为调查。",
+    "preprocessing": "保留全部8,807条；提取type/release_year/rating并派生发行年代，共4列；3条rating误放片长改为缺失，不补值；不发布作品名、演员或描述。",
+    "publication": "公开页与下载仅含聚合统计、分箱计数和解释，未捆绑原始行、个人标识或散点。代码AGPL-3.0与各来源数据许可分别适用。"
+  },
+  "result": {
+    "title": "Netflix片库：电影和剧集怎么分？",
+    "summary": "本样本可比较的组中，「1980年代」的电影条目比例为94.6%（122/129），「2020年代」为51.4%（794/1545），绝对相差43.2个百分点。",
+    "source": {
+      "filename": "netflix-catalog.csv",
+      "is_demo": false,
+      "analyzed_rows": 8807,
+      "total_rows": 8807,
+      "sampled": false,
+      "sheet": null,
+      "notes": [
+        "文本编码：UTF-8。",
+        "2021年历史片库快照，目录不含播放量、评分、营收或完整下架历史。作品发行年不是平台上架年；2021上架时间不完整，不能与完整年度总量比较。country是制作地不是观众地域，题材和制作地可多标签；本例未展开它们。",
+        "保留全部8,807条；提取type/release_year/rating并派生发行年代，共4列；3条rating误放片长改为缺失，不补值；不发布作品名、演员或描述。",
+        "8,807条历史Netflix作品目录，6,131部电影和2,676部剧集；不是观看行为调查。",
+        "保留全部8,807条；提取type/release_year/rating并派生发行年代，共4列；3条rating误放片长改为缺失，不补值；不发布作品名、演员或描述。",
+        "公开页与下载仅含聚合统计、分箱计数和解释，未捆绑原始行、个人标识或散点。代码AGPL-3.0与各来源数据许可分别适用。",
+        "2021年历史片库快照，目录不含播放量、评分、营收或完整下架历史。作品发行年不是平台上架年；2021上架时间不完整，不能与完整年度总量比较。country是制作地不是观众地域，题材和制作地可多标签；本例未展开它们。",
+        "原始来源：https://www.kaggle.com/datasets/shivamb/netflix-shows",
+        "Kaggle来源：https://www.kaggle.com/datasets/shivamb/netflix-shows",
+        "数据许可：CC0: Public Domain",
+        "来源署名：Shivam Bansal, Netflix Movies and TV Shows, Kaggle, V5"
+      ],
+      "public_example": true,
+      "quality_scope": "selected_fields"
+    },
+    "overview": {
+      "rows": 8807,
+      "columns": 4,
+      "numeric_columns": 1,
+      "categorical_columns": 3,
+      "missing_cells": 7,
+      "missing_pct": 0.02
+    },
+    "brief": {
+      "version": 1,
+      "headline": "按作品发行年代分组，电影条目比例相差43.2个百分点",
+      "answer": "本样本可比较的组中，「1980年代」的电影条目比例为94.6%（122/129），「2020年代」为51.4%（794/1545），绝对相差43.2个百分点。",
+      "goal": "作品发行年代与作品类型的构成有什么关系？这里能否看出观众更喜欢什么？",
+      "focus": {
+        "column": "type",
+        "label": "作品类型",
+        "origin": "user",
+        "lower_is_better": false,
+        "meaning": "type=Movie为电影、TV Show为剧集；这里只是历史片库条目构成，不代表播放量、偏好、评分或当前可观看性。",
+        "analyzable": true,
+        "kind": "event"
+      },
+      "findings": [
+        {
+          "id": "finding-1",
+          "kind": "overview",
+          "title": "先看懂作品类型",
+          "takeaway": "8,807条有效记录中，电影条目有6,131条，占69.6%。",
+          "explanation": "type=Movie为电影、TV Show为剧集；这里只是历史片库条目构成，不代表播放量、偏好、评分或当前可观看性。",
+          "evidence": "事件明确定义为type=Movie；分子=6131；目标有效分母=8807；目标缺失=0。",
+          "fields": [
+            "type"
+          ],
+          "chart_ids": [
+            "public-distribution",
+            "public-question-1"
+          ],
+          "caveat": "所有比例的分母是已观察的有效记录；不是因果结论、未来预测或统计显著性。平台作品目录、发行年份或分级标签不能替代观看量、观众偏好或未来票房。",
+          "n": 8807,
+          "next_step": "先核对目标取值的定义、记录范围和采集时间。"
+        },
+        {
+          "id": "finding-2",
+          "kind": "group",
+          "title": "按作品发行年代比较电影条目",
+          "takeaway": "本样本可比较的组中，「1980年代」的电影条目比例为94.6%（122/129），「2020年代」为51.4%（794/1545），绝对相差43.2个百分点。",
+          "explanation": "这里每100条已观察记录中大约有多少条电影条目，分母是各组同时有值的记录，不是相对风险，也不是改变组别后的效果。由作品发行年按十年分组；不是Netflix上架年代，也不说明平台采购趋势。",
+          "evidence": "成对有效 n=8807；排除缺失任意一项的0条记录。每个可比较组至少20条；支持不足的3组共27条仍保留计数。各组计数=「2020年代」794/1545；「1990年代」241/274；「2010年代」4184/5927；「1970年代」66/70；「1980年代」122/129；「2000年代」677/810；「1960年代」23/25；「1950年代」11/11；「1940年代」13/15；「1920年代」0/1。",
+          "fields": [
+            "release_decade",
+            "type"
+          ],
+          "chart_ids": [
+            "public-question-1"
+          ],
+          "caveat": "分组比较是样本描述；未做显著性检验、混杂控制或独立预测验证，不能认定因果。平台作品目录、发行年份或分级标签不能替代观看量、观众偏好或未来票房。",
+          "n": 8807,
+          "next_step": "核对「作品发行年代」各组的采集范围、记录时间与其他构成，再用独立记录复核。",
+          "groups": [
+            {
+              "label": "2020年代",
+              "group_id": "B01",
+              "n": 1545,
+              "supported": true,
+              "events": 794,
+              "rate_pct": 51.3915857605178
+            },
+            {
+              "label": "1990年代",
+              "group_id": "B02",
+              "n": 274,
+              "supported": true,
+              "events": 241,
+              "rate_pct": 87.95620437956204
+            },
+            {
+              "label": "2010年代",
+              "group_id": "B03",
+              "n": 5927,
+              "supported": true,
+              "events": 4184,
+              "rate_pct": 70.59220516281424
+            },
+            {
+              "label": "1970年代",
+              "group_id": "B04",
+              "n": 70,
+              "supported": true,
+              "events": 66,
+              "rate_pct": 94.28571428571428
+            },
+            {
+              "label": "1980年代",
+              "group_id": "B05",
+              "n": 129,
+              "supported": true,
+              "events": 122,
+              "rate_pct": 94.57364341085271
+            },
+            {
+              "label": "2000年代",
+              "group_id": "B06",
+              "n": 810,
+              "supported": true,
+              "events": 677,
+              "rate_pct": 83.58024691358025
+            },
+            {
+              "label": "1960年代",
+              "group_id": "B07",
+              "n": 25,
+              "supported": true,
+              "events": 23,
+              "rate_pct": 92.0
+            },
+            {
+              "label": "1950年代",
+              "group_id": "B08",
+              "n": 11,
+              "supported": false,
+              "events": 11,
+              "rate_pct": 100.0
+            },
+            {
+              "label": "1940年代",
+              "group_id": "B09",
+              "n": 15,
+              "supported": false,
+              "events": 13,
+              "rate_pct": 86.66666666666667
+            },
+            {
+              "label": "1920年代",
+              "group_id": "B10",
+              "n": 1,
+              "supported": false,
+              "events": 0,
+              "rate_pct": 0.0
+            }
+          ],
+          "method": "event_rate"
+        },
+        {
+          "id": "finding-3",
+          "kind": "group",
+          "title": "按原始发行年份比较电影条目",
+          "takeaway": "本样本可比较的组中，「1925 至2013（含两端）」的电影条目比例为82.6%（1850/2239），「大于2019 至2021（含上界）」为51.4%（794/1545），绝对相差31.2个百分点。",
+          "explanation": "这里每100条已观察记录中大约有多少条电影条目，分母是各组同时有值的记录，不是相对风险，也不是改变组别后的效果。作品自身发行年，不是平台上架年；年代组来源于该字段。",
+          "evidence": "成对有效 n=8807；排除缺失任意一项的0条记录。每个可比较组至少20条；支持不足的0组共0条仍保留计数。按成对有效记录的四分位切分，重复分界合并；首段含最小值，其余区间左开右闭。实际分界=1925.0, 2013.0, 2017.0, 2019.0, 2021.0；区间标签的数字按最多12位有效数字显示。各组计数=「1925 至2013（含两端）」1850/2239；「大于2013 至2017（含上界）」2087/2846；「大于2017 至2019（含上界）」1400/2177；「大于2019 至2021（含上界）」794/1545。",
+          "fields": [
+            "release_year",
+            "type"
+          ],
+          "chart_ids": [],
+          "caveat": "分组比较是样本描述；未做显著性检验、混杂控制或独立预测验证，不能认定因果。平台作品目录、发行年份或分级标签不能替代观看量、观众偏好或未来票房。",
+          "n": 8807,
+          "next_step": "核对「原始发行年份」各组的采集范围、记录时间与其他构成，再用独立记录复核。",
+          "groups": [
+            {
+              "label": "1925 至2013（含两端）",
+              "group_id": "B01",
+              "n": 2239,
+              "supported": true,
+              "events": 1850,
+              "rate_pct": 82.62617239839214
+            },
+            {
+              "label": "大于2013 至2017（含上界）",
+              "group_id": "B02",
+              "n": 2846,
+              "supported": true,
+              "events": 2087,
+              "rate_pct": 73.33099086437105
+            },
+            {
+              "label": "大于2017 至2019（含上界）",
+              "group_id": "B03",
+              "n": 2177,
+              "supported": true,
+              "events": 1400,
+              "rate_pct": 64.30868167202573
+            },
+            {
+              "label": "大于2019 至2021（含上界）",
+              "group_id": "B04",
+              "n": 1545,
+              "supported": true,
+              "events": 794,
+              "rate_pct": 51.3915857605178
+            }
+          ],
+          "method": "event_rate"
+        },
+        {
+          "id": "finding-4",
+          "kind": "insufficient",
+          "title": "按内容分级标签比较电影条目",
+          "takeaway": "暂不足以比较不同内容分级标签组的作品类型。",
+          "explanation": "类别超过12组的展示上限；请提出范围更明确的问题。",
+          "evidence": "成对有效 n=8800；排除缺失任意一项的7条记录。每个可比较组至少20条；支持不足的0组共0条仍保留计数。",
+          "fields": [
+            "rating",
+            "type"
+          ],
+          "chart_ids": [],
+          "caveat": "分组比较是样本描述；未做显著性检验、混杂控制或独立预测验证，不能认定因果。平台作品目录、发行年份或分级标签不能替代观看量、观众偏好或未来票房。",
+          "n": 8800,
+          "next_step": "核对「内容分级标签」各组的采集范围、记录时间与其他构成，再用独立记录复核。",
+          "groups": [],
+          "method": "event_rate"
+        }
+      ],
+      "question_answers": [
+        {
+          "id": "question-1",
+          "question": "作品发行年代与作品类型有什么关系？",
+          "answer": "本样本可比较的组中，「1980年代」的电影条目比例为94.6%（122/129），「2020年代」为51.4%（794/1545），绝对相差43.2个百分点。",
+          "status": "supported",
+          "explanation": "这里每100条已观察记录中大约有多少条电影条目，分母是各组同时有值的记录，不是相对风险，也不是改变组别后的效果。由作品发行年按十年分组；不是Netflix上架年代，也不说明平台采购趋势。",
+          "evidence": "成对有效 n=8807；排除缺失任意一项的0条记录。每个可比较组至少20条；支持不足的3组共27条仍保留计数。各组计数=「2020年代」794/1545；「1990年代」241/274；「2010年代」4184/5927；「1970年代」66/70；「1980年代」122/129；「2000年代」677/810；「1960年代」23/25；「1950年代」11/11；「1940年代」13/15；「1920年代」0/1。",
+          "caveat": "分组比较是样本描述；未做显著性检验、混杂控制或独立预测验证，不能认定因果。平台作品目录、发行年份或分级标签不能替代观看量、观众偏好或未来票房。",
+          "next_step": "核对「作品发行年代」各组的采集范围、记录时间与其他构成，再用独立记录复核。",
+          "fields": [
+            "release_decade",
+            "type"
+          ],
+          "n": 8807,
+          "rho": null,
+          "finding_ids": [
+            "finding-2"
+          ],
+          "method": "event_rate",
+          "groups": [
+            {
+              "label": "2020年代",
+              "group_id": "B01",
+              "n": 1545,
+              "supported": true,
+              "events": 794,
+              "rate_pct": 51.3915857605178
+            },
+            {
+              "label": "1990年代",
+              "group_id": "B02",
+              "n": 274,
+              "supported": true,
+              "events": 241,
+              "rate_pct": 87.95620437956204
+            },
+            {
+              "label": "2010年代",
+              "group_id": "B03",
+              "n": 5927,
+              "supported": true,
+              "events": 4184,
+              "rate_pct": 70.59220516281424
+            },
+            {
+              "label": "1970年代",
+              "group_id": "B04",
+              "n": 70,
+              "supported": true,
+              "events": 66,
+              "rate_pct": 94.28571428571428
+            },
+            {
+              "label": "1980年代",
+              "group_id": "B05",
+              "n": 129,
+              "supported": true,
+              "events": 122,
+              "rate_pct": 94.57364341085271
+            },
+            {
+              "label": "2000年代",
+              "group_id": "B06",
+              "n": 810,
+              "supported": true,
+              "events": 677,
+              "rate_pct": 83.58024691358025
+            },
+            {
+              "label": "1960年代",
+              "group_id": "B07",
+              "n": 25,
+              "supported": true,
+              "events": 23,
+              "rate_pct": 92.0
+            },
+            {
+              "label": "1950年代",
+              "group_id": "B08",
+              "n": 11,
+              "supported": false,
+              "events": 11,
+              "rate_pct": 100.0
+            },
+            {
+              "label": "1940年代",
+              "group_id": "B09",
+              "n": 15,
+              "supported": false,
+              "events": 13,
+              "rate_pct": 86.66666666666667
+            },
+            {
+              "label": "1920年代",
+              "group_id": "B10",
+              "n": 1,
+              "supported": false,
+              "events": 0,
+              "rate_pct": 0.0
+            }
+          ],
+          "status_label": "样本分组比较",
+          "difference_pp": 43.18205765033491
+        }
+      ],
+      "caveats": [
+        "2021年历史片库快照，目录不含播放量、评分、营收或完整下架历史。作品发行年不是平台上架年；2021上架时间不完整，不能与完整年度总量比较。country是制作地不是观众地域，题材和制作地可多标签；本例未展开它们。",
+        "所有比例的分母是已观察的有效记录；不是因果结论、未来预测或统计显著性。平台作品目录、发行年份或分级标签不能替代观看量、观众偏好或未来票房。",
+        "Movie=电影、TV Show=剧集；作品目录条目不等于观众观看记录。"
+      ],
+      "next_questions": [
+        "核对「作品发行年代」各组的采集范围、记录时间与其他构成，再用独立记录复核。"
+      ],
+      "coverage": {
+        "analyzed_rows": 8807,
+        "numeric_fields_scanned": 1,
+        "relationships_evaluated": 3,
+        "questions_detected": 1,
+        "questions_answered": 1,
+        "questions_omitted": 0,
+        "group_comparisons_evaluated": 3
+      }
+    },
+    "charts": [
+      {
+        "id": "public-distribution",
+        "title": "先看总体构成",
+        "description": "8,807条目标有效记录；缺失0条。",
+        "type": "group_comparison",
+        "fields": [
+          "type"
+        ],
+        "sample_notes": [
+          "聚合统计；组间差异不表示因果，分组界限不是诊断或业务阈值。"
+        ],
+        "figure": {
+          "data": [
+            {
+              "type": "bar",
+              "x": [
+                "电影条目（Movie）",
+                "其他记录"
+              ],
+              "y": [
+                6131,
+                2676
+              ]
+            }
+          ],
+          "layout": {
+            "xaxis": {
+              "title": {
+                "text": "区间 / 原始类别"
+              }
+            },
+            "yaxis": {
+              "title": {
+                "text": "记录数"
+              },
+              "rangemode": "tozero"
+            }
+          }
+        }
+      },
+      {
+        "id": "public-question-1",
+        "title": "作品发行年代与作品类型有什么关系？",
+        "description": "2020年代: 794/1545; 1990年代: 241/274; 2010年代: 4184/5927; 1970年代: 66/70; 1980年代: 122/129; 2000年代: 677/810; 1960年代: 23/25。仅展示每组至少20条的组；其他组计数见问题依据。",
+        "type": "group_comparison",
+        "fields": [
+          "release_decade",
+          "type"
+        ],
+        "sample_notes": [
+          "聚合统计；组间差异不表示因果，分组界限不是诊断或业务阈值。"
+        ],
+        "figure": {
+          "data": [
+            {
+              "type": "bar",
+              "x": [
+                "2020年代",
+                "1990年代",
+                "2010年代",
+                "1970年代",
+                "1980年代",
+                "2000年代",
+                "1960年代"
+              ],
+              "y": [
+                51.3915857605178,
+                87.95620437956204,
+                70.59220516281424,
+                94.28571428571428,
+                94.57364341085271,
+                83.58024691358025,
+                92.0
+              ]
+            }
+          ],
+          "layout": {
+            "xaxis": {
+              "title": {
+                "text": "区间 / 原始类别"
+              }
+            },
+            "yaxis": {
+              "title": {
+                "text": "组内比例（%）"
+              },
+              "rangemode": "tozero"
+            }
+          }
+        }
+      }
+    ],
+    "columns": [],
+    "insights": [],
+    "recommendations": [
+      "核对「作品发行年代」各组的采集范围、记录时间与其他构成，再用独立记录复核。"
+    ],
+    "preview": {
+      "columns": [],
+      "rows": []
+    },
+    "agent": {
+      "mode": "statistical",
+      "model": null,
+      "notes": [
+        "真实Kaggle固定版本经本项目完整统计流程生成；未调用付费模型。公开报告只含聚合证据，浏览与下载不创建任务。"
+      ]
+    },
+    "duration_seconds": 0
+  }
+}

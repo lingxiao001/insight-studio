@@ -85,7 +85,7 @@ type Job = {
 type Result = {
  title:string; summary:string;
  source:{filename:string;is_demo:boolean;analyzed_rows:number;total_rows:number|null;sampled:boolean;sheet?:string|null;notes:string[]};
- overview:{rows:number;columns:number;numeric_columns:number;categorical_columns:number;missing_cells:number;missing_pct:number;duplicate_rows:number;quality_score:number};
+ overview:{rows:number;columns:number;numeric_columns:number;categorical_columns:number;missing_cells:number;missing_pct:number;duplicate_rows?:number;quality_score?:number};
  columns:{name:string;dtype:string;kind:'numeric'|'categorical'|'datetime'|'boolean';missing:number;missing_pct:number;unique:number;mean?:number|null;median?:number|null;min?:number|string|null;max?:number|string|null;std?:number|null;quantiles?:Quantiles|null;skew?:number|null;kurtosis?:number|null;iqr?:number|null;outlier_count?:number|null;outlier_pct?:number|null}[];
  charts:{id:string;title:string;description:string;type:string;figure:{data:any[];layout:any};wide?:boolean;section?:EdaSectionKey;fields?:string[];sample_notes?:string[]}[];
  insights:{title:string;body:string;level:'info'|'warning'|'success';evidence:string}[];
@@ -99,7 +99,7 @@ type Result = {
 };
 ```
 
-所有统计均对应已分析行。截断时 `source.sampled=true` 且 `total_rows=null`；这是顺序前 N 行的有界读取，不是随机抽样。`quality_score` 是启发式，不是模型准确率。`agent.mode='llm'` 仅表示采用了模型新增文字，不代表事实验证通过；可选 `agent.review` 是该份结果的人工元数据。
+所有统计均对应已分析行。截断时 `source.sampled=true` 且 `total_rows=null`；这是顺序前 N 行的有界读取，不是随机抽样。`quality_score` 是启发式，不是模型准确率。新公开例只保留选定分析字段（`source.quality_scope='selected_fields'`），不提供`duplicate_rows`、`quality_score`，避免把脱敏后同值记录当作原始数据质量问题。`agent.mode='llm'` 仅表示采用了模型新增文字，不代表事实验证通过；可选 `agent.review` 是该份结果的人工元数据。
 
 `insights` 与 `recommendations` 包含原生统计项及可选模型新增项，不能按整个数组长度判断模型是否超出三条限制。预览与类别原值留在本地结果/报告；模型输入使用有界聚合和别名。
 
@@ -167,7 +167,7 @@ Pearson/Spearman 使用成对完整样本，最少 5 对仅作计算防护，不
 
 ## 解释层增量契约
 
-`GET /api/uploads/{upload_id}/schema?selected_file=...`本地读取当前账号的表格，返回columns（name、label、kind、meaning、selectable、suggested、selection_note）、suggested_target、questions、analyzed_rows、notes。不返回原始行、不创建任务、不调用模型。其他账号返回404，非法成员或不可解析文件返回400。`selectable`要求非编号数值列、至少5个非缺失值和至少2种取值；不满足时，`selection_note`说明限制。
+`GET /api/uploads/{upload_id}/schema?selected_file=...`本地读取当前账号的表格，返回columns（name、label、kind、meaning、selectable、suggested、selection_note）、suggested_target、questions、analyzed_rows、notes。不返回原始行、不创建任务、不调用模型。其他账号返回404，非法成员或不可解析文件返回400。`selectable`要求非编号的数值列或不超过12类的类别列、至少5个非缺失值和至少2种取值；来源明确排除的列不可选。不满足时，`selection_note`说明限制。
 
 结果支持可选的`brief`版本1；以下新增键采用兼容方式读取，历史结果可能缺失：
 
@@ -177,6 +177,10 @@ type QuestionAnswer = {
  status:'supported'|'partial'|'insufficient'; status_label?:string;
  explanation:string; evidence:string; caveat:string; next_step:string;
  fields:string[]; n:number; rho:number|null; finding_ids:string[];
+ method?:'spearman'|'group_summary'|'event_rate'|'category_share'|'excluded'|'not_applicable';
+ groups?:{group_id?:string;label:string;n:number;supported:boolean;
+          events?:number;rate_pct?:number;mean?:number;median?:number}[];
+ difference_pp?:number|null;
 };
 type ExplanationBrief = {
  version:1; headline:string; answer:string; goal:string;
@@ -194,10 +198,16 @@ type ExplanationBrief = {
 
 `question_answers`按问题中识别出的字段出现顺序，最多返回12项。字段匹配使用列名、展示名称及已知领域别名，不能据此声称理解了所有自然语言问题。`questions_omitted`记录超出上限而未回答的项数，并在`caveats`中提示拆分问题。`finding_ids`只关联同一结果中已展示的补充发现，可为空；不能用其为空推断没有证据。
 
-三个状态是描述性展示规则：数值比较中，`supported`要求至少20对有效值且`|rho|>=0.20`；`partial`表示至少20对记录但排序相关较弱；`insufficient`表示记录不足、常量或疑似编号等不能形成比较。类别字段可返回`partial`并附`status_label='当前方法不适用'`，明确当前逐项回答未做类别间比较，不能称为弱关联或数据不足。客户端优先展示可选`status_label`，其余情况使用默认状态文案。
+三个状态是描述性展示规则：数值排序比较中，`supported`要求至少20对有效值且`|rho|>=0.20`；`partial`表示至少20对记录但排序相关较弱；`insufficient`表示记录不足、常量或疑似编号等不能形成比较。分组比较中，至少两个各有20条有效记录的组才返回`supported`；小组保留计数，`supported=false`，不参与最大／最小差异比较。来源明确排除的字段返回`method='excluded'`与原因。客户端优先展示可选`status_label`，其余情况使用默认状态文案；旧版`not_applicable`仍可读取。
 
 这些状态均不表示统计显著性、置信度或因果。`rho`在未计算或无法计算时为null，`n`是该项成对非缺失记录数；方法不适用、支持不足和没有清晰单调关系需结合`explanation`分别读取，不能统称没有关系。
 
 `focus.analyzable=false`时仍可保留用户明确选择的列，说明类型或有效记录限制，不改用其他指标替原问题作答。`findings`最多五项；逐项回答、补充发现、导出和可选模型证据来自服务端同一次分析。模型不会覆盖规则生成的brief。
 
 旧结果缺少`brief`时继续显示原概览；旧brief缺少`question_answers`或新增coverage字段时继续展示原发现。浏览旧报告不创建新任务、不调用模型，也不自动补算新增字段。统计口径与教育语义边界见[解释型分析](explanatory-analysis.md)。
+
+`group_summary`展示数值目标的组均值／中位数；`event_rate`只在来源明确正类编码且实际二值取值核验成功时启用。`events/n*100`为`rate_pct`，`difference_pp`是支持充分组中的最大比例减最小比例，单位为百分点。`category_share`仅说明某一原始取值的构成，不能自动把1叫死亡或违约。连续分组字段使用成对完整记录的四分位区间，重复分界合并，首段含最小值，后续左开右闭；精确分界写在依据中。
+
+`source.analysis_context`是经核验的内部来源元数据，公开案例构建器用它声明domain、field_definitions（label/meaning/value_labels）、categorical_fields、event（column/value/label/meaning）和exclude_fields（字段→原因）。它不是新增的任务创建API参数。明确排除的字段可以保留本地基础EDA，但不进入重点关系或外部模型证据。解释分组使用`B01`别名，基础EDA仍使用`G01`，模型只获得别名和聚合数值，不能混用两套映射。
+
+`GET /api/examples`目录兼容旧字段，并增加domain、finding、records、fields。固定允许的8个slug支持匿名GET详情及`/report.md`、`/report.html`下载；这些是预计算聚合快照，与私人任务存储分离。其他路径与写操作仍受登录保护。具体来源和复现见[跨领域案例](cross-domain-examples.md)。

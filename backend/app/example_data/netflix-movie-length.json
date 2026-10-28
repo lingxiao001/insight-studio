@@ -1,0 +1,347 @@
+{
+  "slug": "netflix-movie-length",
+  "title": "挑部电影：通常需要留出多久？",
+  "description": "同一Netflix快照的完整6,131部电影子群，6,128条可解析片长；与片库案例共用数据源。",
+  "finding": "电影时长（分钟）的中位数为98，中间一半记录在87至114之间。",
+  "domain": "娱乐",
+  "topic": "电影时长",
+  "provenance": {
+    "citation": "Shivam Bansal, Netflix Movies and TV Shows, Kaggle, V5",
+    "url": "https://www.kaggle.com/datasets/shivamb/netflix-shows",
+    "license": "CC0: Public Domain",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "kaggle_url": "https://www.kaggle.com/datasets/shivamb/netflix-shows",
+    "dataset_version": 5,
+    "accessed_at": "2026-10-28",
+    "source_sha256": "df1f4ad2027a5a14c3a33932ef0d4054565ff88adf92b7f263601b70fdc6f3f3",
+    "population": "同一Netflix快照的完整6,131部电影子群，6,128条可解析片长；与片库案例共用数据源。",
+    "preprocessing": "完整Movie子群，保留发行年/内容分级/发行年代，增加按‘数字 min’解析的分钟数，共4列；3条原始缺失片长不修复、不填补。",
+    "publication": "公开页与下载仅含聚合统计、分箱计数和解释，未捆绑原始行、个人标识或散点。代码AGPL-3.0与各来源数据许可分别适用。"
+  },
+  "result": {
+    "title": "挑部电影：通常需要留出多久？",
+    "summary": "本样本可比较的组中，「1960年代」的电影时长（分钟）均值为148，「2020年代」为93.6，相差54。仅解析Movie且duration严格形如‘数字 min’；TV Show的季数不能混入分钟。电影6131条，6128条片长有效，3条保留缺失。",
+    "source": {
+      "filename": "netflix-movie-length.csv",
+      "is_demo": false,
+      "analyzed_rows": 6131,
+      "total_rows": 6131,
+      "sampled": false,
+      "sheet": null,
+      "notes": [
+        "文本编码：UTF-8。",
+        "2021年历史片库快照，目录不含播放量、评分、营收或完整下架历史。作品发行年不是平台上架年；2021上架时间不完整，不能与完整年度总量比较。country是制作地不是观众地域，题材和制作地可多标签；本例未展开它们。时长不是作品质量；年代比较可能混合题材和地区构成。",
+        "完整Movie子群，保留发行年/内容分级/发行年代，增加按‘数字 min’解析的分钟数，共4列；3条原始缺失片长不修复、不填补。",
+        "同一Netflix快照的完整6,131部电影子群，6,128条可解析片长；与片库案例共用数据源。",
+        "完整Movie子群，保留发行年/内容分级/发行年代，增加按‘数字 min’解析的分钟数，共4列；3条原始缺失片长不修复、不填补。",
+        "公开页与下载仅含聚合统计、分箱计数和解释，未捆绑原始行、个人标识或散点。代码AGPL-3.0与各来源数据许可分别适用。",
+        "2021年历史片库快照，目录不含播放量、评分、营收或完整下架历史。作品发行年不是平台上架年；2021上架时间不完整，不能与完整年度总量比较。country是制作地不是观众地域，题材和制作地可多标签；本例未展开它们。时长不是作品质量；年代比较可能混合题材和地区构成。",
+        "原始来源：https://www.kaggle.com/datasets/shivamb/netflix-shows",
+        "Kaggle来源：https://www.kaggle.com/datasets/shivamb/netflix-shows",
+        "数据许可：CC0: Public Domain",
+        "来源署名：Shivam Bansal, Netflix Movies and TV Shows, Kaggle, V5"
+      ],
+      "public_example": true,
+      "quality_scope": "selected_fields"
+    },
+    "overview": {
+      "rows": 6131,
+      "columns": 4,
+      "numeric_columns": 2,
+      "categorical_columns": 2,
+      "missing_cells": 8,
+      "missing_pct": 0.033
+    },
+    "brief": {
+      "version": 1,
+      "headline": "按作品发行年代分组，电影时长（分钟）均值有所不同",
+      "answer": "本样本可比较的组中，「1960年代」的电影时长（分钟）均值为148，「2020年代」为93.6，相差54。仅解析Movie且duration严格形如‘数字 min’；TV Show的季数不能混入分钟。电影6131条，6128条片长有效，3条保留缺失。",
+      "goal": "电影时长（分钟）的典型范围是多少？作品发行年代与电影时长（分钟）有什么关系？",
+      "focus": {
+        "column": "movie_minutes",
+        "label": "电影时长（分钟）",
+        "origin": "user",
+        "lower_is_better": false,
+        "meaning": "仅解析Movie且duration严格形如‘数字 min’；TV Show的季数不能混入分钟。电影6131条，6128条片长有效，3条保留缺失。",
+        "analyzable": true
+      },
+      "findings": [
+        {
+          "id": "finding-1",
+          "kind": "overview",
+          "title": "先看懂电影时长（分钟）",
+          "takeaway": "电影时长（分钟）的中位数为98，中间一半记录在87至114之间。",
+          "explanation": "仅解析Movie且duration严格形如‘数字 min’；TV Show的季数不能混入分钟。电影6131条，6128条片长有效，3条保留缺失。",
+          "evidence": "有效记录 n=6128；中位数=98；Q1=87；Q3=114。",
+          "fields": [
+            "movie_minutes"
+          ],
+          "chart_ids": [
+            "public-distribution",
+            "public-question-1"
+          ],
+          "caveat": "分位区间描述样本分布，不是合格线或理想标准。",
+          "n": 6128,
+          "next_step": "先核对这个指标的定义，再阅读关联发现。"
+        },
+        {
+          "id": "finding-2",
+          "kind": "insufficient",
+          "title": "暂未发现足够清晰的目标关联",
+          "takeaway": "当前数值关系没有同时满足至少20对记录和排序关联绝对值0.20的展示门槛。",
+          "explanation": "这不代表没有关系；样本不足、缺失或非单调关系都可能影响结果。继续补充记录或提出更具体的问题更有帮助。",
+          "evidence": "扫描2个数值候选，计算1组目标关系；未进行显著性检验。",
+          "fields": [
+            "movie_minutes"
+          ],
+          "chart_ids": [
+            "public-distribution",
+            "public-question-1"
+          ],
+          "caveat": "展示门槛是解释筛选规则，不是统计显著性判断。",
+          "n": 6128,
+          "next_step": "补充记录或检查有业务含义的分组。"
+        }
+      ],
+      "question_answers": [
+        {
+          "id": "question-1",
+          "question": "作品发行年代与电影时长（分钟）有什么关系？",
+          "answer": "本样本可比较的组中，「1960年代」的电影时长（分钟）均值为148，「2020年代」为93.6，相差54。",
+          "status": "supported",
+          "explanation": "两组中位数分别为152和97；均值容易受少数大值影响，应同时看中位数及各组规模，不能将组间差异归因于类别本身。由作品发行年按十年分组；不是Netflix上架年代，也不说明平台采购趋势。",
+          "evidence": "成对有效 n=6128；排除缺失任意一项的3条记录。每个可比较组至少20条；支持不足的2组共24条仍保留计数。各组有效记录=「2020年代」n=794；「1990年代」n=241；「2010年代」n=4181；「1970年代」n=66；「1980年代」n=122；「2000年代」n=677；「1960年代」n=23；「1950年代」n=11；「1940年代」n=13。",
+          "caveat": "分组比较是样本描述；未做显著性检验、混杂控制或独立预测验证，不能认定因果。平台作品目录、发行年份或分级标签不能替代观看量、观众偏好或未来票房。",
+          "next_step": "核对「作品发行年代」各组的采集范围、记录时间与其他构成，再用独立记录复核。",
+          "fields": [
+            "release_decade",
+            "movie_minutes"
+          ],
+          "n": 6128,
+          "rho": null,
+          "finding_ids": [],
+          "method": "group_summary",
+          "groups": [
+            {
+              "label": "2020年代",
+              "group_id": "B01",
+              "n": 794,
+              "supported": true,
+              "mean": 93.64231738035265,
+              "median": 97.0
+            },
+            {
+              "label": "1990年代",
+              "group_id": "B02",
+              "n": 241,
+              "supported": true,
+              "mean": 113.84232365145228,
+              "median": 108.0
+            },
+            {
+              "label": "2010年代",
+              "group_id": "B03",
+              "n": 4181,
+              "supported": true,
+              "mean": 96.92202822291318,
+              "median": 97.0
+            },
+            {
+              "label": "1970年代",
+              "group_id": "B04",
+              "n": 66,
+              "supported": true,
+              "mean": 119.24242424242425,
+              "median": 113.5
+            },
+            {
+              "label": "1980年代",
+              "group_id": "B05",
+              "n": 122,
+              "supported": true,
+              "mean": 116.22950819672131,
+              "median": 105.5
+            },
+            {
+              "label": "2000年代",
+              "group_id": "B06",
+              "n": 677,
+              "supported": true,
+              "mean": 112.11078286558346,
+              "median": 108.0
+            },
+            {
+              "label": "1960年代",
+              "group_id": "B07",
+              "n": 23,
+              "supported": true,
+              "mean": 147.6086956521739,
+              "median": 152.0
+            },
+            {
+              "label": "1950年代",
+              "group_id": "B08",
+              "n": 11,
+              "supported": false,
+              "mean": 107.0909090909091,
+              "median": 108.0
+            },
+            {
+              "label": "1940年代",
+              "group_id": "B09",
+              "n": 13,
+              "supported": false,
+              "mean": 51.38461538461539,
+              "median": 52.0
+            }
+          ],
+          "status_label": "样本分组比较"
+        }
+      ],
+      "next_questions": [
+        "核对「作品发行年代」各组的采集范围、记录时间与其他构成，再用独立记录复核。",
+        "补充记录或检查有业务含义的分组。"
+      ],
+      "caveats": [
+        "2021年历史片库快照，目录不含播放量、评分、营收或完整下架历史。作品发行年不是平台上架年；2021上架时间不完整，不能与完整年度总量比较。country是制作地不是观众地域，题材和制作地可多标签；本例未展开它们。时长不是作品质量；年代比较可能混合题材和地区构成。",
+        "结论只描述本次读取的记录；共同变化不等于一个因素造成另一个结果。",
+        "仅解析Movie且duration严格形如‘数字 min’；TV Show的季数不能混入分钟。电影6131条，6128条片长有效，3条保留缺失。"
+      ],
+      "coverage": {
+        "analyzed_rows": 6131,
+        "numeric_fields_scanned": 2,
+        "relationships_evaluated": 1,
+        "questions_detected": 1,
+        "questions_answered": 1,
+        "questions_omitted": 0
+      }
+    },
+    "charts": [
+      {
+        "id": "public-distribution",
+        "title": "关注指标的分布",
+        "description": "6,128条有效记录，等宽分箱；缺失3条。",
+        "type": "group_comparison",
+        "fields": [
+          "movie_minutes"
+        ],
+        "sample_notes": [
+          "聚合统计；组间差异不表示因果，分组界限不是诊断或业务阈值。"
+        ],
+        "figure": {
+          "data": [
+            {
+              "type": "bar",
+              "x": [
+                "[3, 33.9)",
+                "[33.9, 64.8)",
+                "[64.8, 95.7)",
+                "[95.7, 126.6)",
+                "[126.6, 157.5)",
+                "[157.5, 188.4)",
+                "[188.4, 219.3)",
+                "[219.3, 250.2)",
+                "[250.2, 281.1)",
+                "[281.1, 312]"
+              ],
+              "y": [
+                147,
+                450,
+                2095,
+                2569,
+                692,
+                144,
+                22,
+                6,
+                2,
+                1
+              ]
+            }
+          ],
+          "layout": {
+            "xaxis": {
+              "title": {
+                "text": "区间 / 原始类别"
+              }
+            },
+            "yaxis": {
+              "title": {
+                "text": "记录数"
+              },
+              "rangemode": "tozero"
+            }
+          }
+        }
+      },
+      {
+        "id": "public-question-1",
+        "title": "作品发行年代与电影时长（分钟）有什么关系？",
+        "description": "2020年代: n=794, median=97; 1990年代: n=241, median=108; 2010年代: n=4181, median=97; 1970年代: n=66, median=113.5; 1980年代: n=122, median=105.5; 2000年代: n=677, median=108; 1960年代: n=23, median=152。仅展示每组至少20条的组；其他组计数见问题依据。",
+        "type": "group_comparison",
+        "fields": [
+          "release_decade",
+          "movie_minutes"
+        ],
+        "sample_notes": [
+          "聚合统计；组间差异不表示因果，分组界限不是诊断或业务阈值。"
+        ],
+        "figure": {
+          "data": [
+            {
+              "type": "bar",
+              "x": [
+                "2020年代",
+                "1990年代",
+                "2010年代",
+                "1970年代",
+                "1980年代",
+                "2000年代",
+                "1960年代"
+              ],
+              "y": [
+                93.64231738035265,
+                113.84232365145228,
+                96.92202822291318,
+                119.24242424242425,
+                116.22950819672131,
+                112.11078286558346,
+                147.6086956521739
+              ]
+            }
+          ],
+          "layout": {
+            "xaxis": {
+              "title": {
+                "text": "区间 / 原始类别"
+              }
+            },
+            "yaxis": {
+              "title": {
+                "text": "均值（目标原单位）"
+              },
+              "rangemode": "tozero"
+            }
+          }
+        }
+      }
+    ],
+    "columns": [],
+    "insights": [],
+    "recommendations": [
+      "核对「作品发行年代」各组的采集范围、记录时间与其他构成，再用独立记录复核。",
+      "补充记录或检查有业务含义的分组。"
+    ],
+    "preview": {
+      "columns": [],
+      "rows": []
+    },
+    "agent": {
+      "mode": "statistical",
+      "model": null,
+      "notes": [
+        "真实Kaggle固定版本经本项目完整统计流程生成；未调用付费模型。公开报告只含聚合证据，浏览与下载不创建任务。"
+      ]
+    },
+    "duration_seconds": 0
+  }
+}

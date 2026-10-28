@@ -6,7 +6,11 @@ from fastapi import APIRouter, HTTPException, Response
 
 from .report import render_html, render_markdown
 
-EXAMPLE_IDS = ("graduation-employability", "graduation-academic")
+EXAMPLE_IDS = (
+    "hotel-city-cancellations", "hotel-resort-cancellations",
+    "credit-card-default", "heart-failure-followup", "netflix-catalog", "netflix-movie-length",
+    "graduation-employability", "graduation-academic",
+)
 DATA_DIR = Path(__file__).with_name("example_data")
 PUBLIC_PATHS = {"/api/examples"} | {
     f"/api/examples/{slug}{suffix}"
@@ -22,10 +26,21 @@ def load_example(slug):
     return json.loads((DATA_DIR / f"{slug}.json").read_text(encoding="utf-8"))
 
 
+def summarize_example(item):
+    """Keep the catalog small and derive its scale from the published snapshot."""
+    summary = {key: item[key] for key in ("slug", "title", "description", "topic")}
+    summary.update({
+        "domain": item.get("domain", "教育" if item["slug"].startswith("graduation-") else "其他"),
+        "finding": item.get("finding", item["description"]),
+        "records": item["result"]["overview"]["rows"],
+        "fields": item["result"]["overview"]["columns"],
+    })
+    return summary
+
+
 @router.get("")
 def examples():
-    return {"examples": [{key: item[key] for key in ("slug", "title", "description", "topic")}
-                         for item in map(load_example, EXAMPLE_IDS)]}
+    return {"examples": [summarize_example(item) for item in map(load_example, EXAMPLE_IDS)]}
 
 
 @router.get("/{slug}")

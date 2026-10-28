@@ -42,7 +42,7 @@ inside the wheels. Their upstream repositories and PyPI source distributions
 provide the corresponding unmodified sources. In particular, certifi and
 its certificate material retain their MPL terms.
 
-## Public dataset used in examples
+## Public datasets used in examples
 
 The built-in Graduation examples contain aggregate statistics derived from:
 Wang, Dongxuan (2025), “Graduation”, Mendeley Data, V1,
@@ -74,6 +74,91 @@ See [dataset provenance and interpretation](docs/real-data-provenance.md).
 Dataset facts and sample reports are not claims about current prices,
 occupancy, transactions or causal effects. Software licensing does not
 override rights or obligations associated with data you upload.
+
+### Hotel booking demand
+
+The city-hotel and resort-hotel cancellation examples derive from
+**Hotel booking demand**, published by Jesse Mostipak on Kaggle, version 1:
+[Kaggle source](https://www.kaggle.com/datasets/jessemostipak/hotel-booking-demand).
+The original data article is Nuno Antonio, Ana de Almeida, and Luis Nunes
+(2019), “Hotel booking demand datasets”, *Data in Brief* 22, 41–49,
+DOI [10.1016/j.dib.2018.11.126](https://doi.org/10.1016/j.dib.2018.11.126),
+licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+The Kaggle description additionally credits Thomas Mock and Antoine Bichat
+for the TidyTuesday CSV compilation.
+
+The derivative selects the complete existing City Hotel population of
+79,330 bookings and Resort Hotel population of 40,060 bookings as two
+separate cases. It removes agency/company identifiers and outcome-time
+fields from explanatory candidates, while preserving each selected
+population's records and cancellation target. The public snapshots contain
+aggregates, not booking-level rows. The cases describe the two historical
+hotels, not all city or resort hotels, and do not estimate intervention effects.
+
+### Default of Credit Card Clients
+
+The credit-card example derives from **Default of Credit Card Clients
+Dataset**, published by UCI Machine Learning on Kaggle, version 1:
+[Kaggle source](https://www.kaggle.com/datasets/uciml/default-of-credit-card-clients-dataset).
+The original repository citation is I-Cheng Yeh (2009), “Default of Credit
+Card Clients”, UCI Machine Learning Repository,
+DOI [10.24432/C55S3H](https://doi.org/10.24432/C55S3H), with the associated
+research by I-Cheng Yeh and Che-hui Lien.
+
+Kaggle labels the uploaded version CC0; the
+[original UCI repository](https://archive.ics.uci.edu/dataset/350/default+of+credit+card+clients)
+currently labels the dataset
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+The project discloses both source layers and retains original attribution;
+it does not assert that the Kaggle label overrides upstream rights.
+The derivative preserves all 30,000 records, removes the client ID, and
+treats demographic and repayment codes according to their documented
+meaning rather than as arbitrary continuous values. Only aggregate
+statistics are bundled. No customer-level records or operational credit
+decisions are published.
+
+### Heart Failure Clinical Records
+
+The clinical follow-up example derives from **Heart Failure Prediction**,
+published on Kaggle by Larxel (`andrewmvd`), version 1:
+[Kaggle source](https://www.kaggle.com/datasets/andrewmvd/heart-failure-clinical-data).
+Kaggle and the
+[original UCI repository](https://archive.ics.uci.edu/dataset/519/heart+failure+clinical+records)
+identify [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+The repository DOI is [10.24432/C5Z89R](https://doi.org/10.24432/C5Z89R).
+Credit Davide Chicco and Giuseppe Jurman (2020), “Machine learning can
+predict survival of patients with heart failure from serum creatinine and
+ejection fraction alone”, *BMC Medical Informatics and Decision Making* 20,
+16, DOI [10.1186/s12911-020-1023-5](https://doi.org/10.1186/s12911-020-1023-5),
+and the original clinical data collection by Ahmad and colleagues (2017).
+
+The derivative preserves all 299 patient records locally for computation,
+while excluding follow-up duration as an admission-time explanatory
+candidate. It publishes only aggregated descriptive statistics and
+interpretation limits. Patient-level records, individual points, diagnosis,
+treatment recommendations, and individual prognoses are not included.
+
+### Netflix Movies and TV Shows
+
+The catalogue and movie-length examples derive from **Netflix Movies and
+TV Shows**, published by Shivam Bansal on Kaggle, version 5, labelled CC0:
+[Kaggle source](https://www.kaggle.com/datasets/shivamb/netflix-shows).
+The derivative uses all 8,807 catalogue records and the complete 6,131-movie
+subset for the two respective questions. It parses only `duration` values
+matching a numeric minute count into movie length, leaving three missing
+movie durations unfilled (6,128 valid values). Three duration strings
+incorrectly stored in `rating` are marked as missing classifications; they
+are not used to repair movie duration. Public snapshots omit title-level
+text, cast and director names, descriptions, and raw records. The examples
+describe a historical catalogue, not current availability, viewer demand,
+ratings, or revenue.
+
+All four sources' fixed versions, original-file checksums, transformations,
+scope, and reproducible aggregate checks are documented in
+[cross-domain examples](docs/cross-domain-examples.md).
+Preserve these source attributions and change notices when redistributing
+the derived public snapshots. The software license does not relicense
+the source datasets.
 
 ## Visual assets
 

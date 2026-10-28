@@ -123,6 +123,42 @@ def deep_html(eda):
         + "".join(tables) + "</section>")
 
 
+def brief_group_table(item):
+    groups = item.get("groups", [])
+    if not groups:
+        return [], []
+    proportional = "rate_pct" in groups[0]
+    if proportional:
+        count_label = "事件数" if item.get("method") == "event_rate" else "所比较原始取值记录数"
+        headers = ["别名", "类别或区间", "有效 n", count_label, "比例 %", "展示支持"]
+        rows = [[g.get("group_id", f"G{index:02d}"), g["label"], g["n"], g["events"], g["rate_pct"],
+                 "达到20条" if g["supported"] else "不足20条"] for index,g in enumerate(groups,1)]
+    else:
+        headers = ["别名", "类别或区间", "有效 n", "均值", "中位数", "展示支持"]
+        rows = [[g.get("group_id", f"G{index:02d}"), g["label"], g["n"], g["mean"], g["median"],
+                 "达到20条" if g["supported"] else "不足20条"] for index,g in enumerate(groups,1)]
+    return headers, rows
+
+
+def brief_group_markdown(item):
+    headers, rows = brief_group_table(item)
+    if not rows:
+        return []
+    return ["分组依据（支持不足的小组也保留）：", "", "| " + " | ".join(headers) + " |",
+            "| " + " | ".join("---" for _ in headers) + " |",
+            *["| " + " | ".join(md_text(report_value(v)) for v in row) + " |" for row in rows], ""]
+
+
+def brief_group_html(item):
+    headers, rows = brief_group_table(item)
+    if not rows:
+        return ""
+    heading = "".join("<th>" + escape(h) + "</th>" for h in headers)
+    body = "".join("<tr>" + "".join("<td>" + escape(report_value(v)) + "</td>" for v in row) + "</tr>" for row in rows)
+    return ('<p>分组依据（支持不足的小组也保留）：</p><div class="table-wrap"><table><thead><tr>'
+            + heading + "</tr></thead><tbody>" + body + "</tbody></table></div>")
+
+
 def brief_markdown(brief):
     if not brief:
         return []
@@ -133,10 +169,12 @@ def brief_markdown(brief):
             lines += ["#### " + md_text(item["question"]), "", md_text(item["answer"]), "",
                       md_text(item["explanation"]), "", "依据：" + md_text(item["evidence"]), "",
                       "解释边界：" + md_text(item["caveat"]), "", "下一步：" + md_text(item["next_step"]), ""]
+            lines += brief_group_markdown(item)
     for item in brief["findings"]:
         lines += ["### " + md_text(item["title"]), "", md_text(item["takeaway"]), "",
                   md_text(item["explanation"]), "", "依据：" + md_text(item["evidence"]), "",
                   "解释边界：" + md_text(item["caveat"]), "", "下一步：" + md_text(item.get("next_step", "核对字段口径。")), ""]
+        lines += brief_group_markdown(item)
     lines += ["### 接下来可以了解", ""] + ["- " + md_text(q) for q in brief["next_questions"]]
     lines += ["", "### 本次解释的范围", ""] + ["- " + md_text(c) for c in brief["caveats"]] + [""]
     return lines
@@ -149,11 +187,11 @@ def brief_html(brief):
     answers = "".join(f'<article class="insight"><small>{escape(i.get("status_label") or statuses.get(i["status"], "问题回答"))}</small>'
                       f'<h3>{escape(i["question"])}</h3><p>{escape(i["answer"])}</p><p>{escape(i["explanation"])}</p>'
                       f'<details><summary>查看依据与解释边界 · {i["n"]} 条有效记录</summary><p>{escape(i["evidence"])}</p>'
-                      f'<p>{escape(i["caveat"])}</p></details><p>下一步：{escape(i["next_step"])}</p></article>'
+                      f'<p>{escape(i["caveat"])}</p>{brief_group_html(i)}</details><p>下一步：{escape(i["next_step"])}</p></article>'
                       for i in brief.get("question_answers", []))
     cards = "".join(f'<article class="insight"><h3>{escape(i["title"])}</h3><p>{escape(i["takeaway"])}</p>'
                     f'<p>{escape(i["explanation"])}</p><details><summary>查看依据与解释边界 · {i["n"]} 条有效记录</summary>'
-                    f'<p>{escape(i["evidence"])}</p><p>{escape(i["caveat"])}</p></details>'
+                    f'<p>{escape(i["evidence"])}</p><p>{escape(i["caveat"])}</p>{brief_group_html(i)}</details>'
                     f'<p>下一步：{escape(i.get("next_step", "核对字段口径。"))}</p></article>' for i in brief["findings"])
     questions = "".join(f'<li>{escape(q)}</li>' for q in brief["next_questions"])
     caveats = "".join(f'<li>{escape(c)}</li>' for c in brief["caveats"])
@@ -163,6 +201,7 @@ def brief_html(brief):
 
 def render_markdown(result, goal):
     source, overview = result["source"], result["overview"]
+    projection = source.get("quality_scope") == "selected_fields"
     lines = [f"# {md_text(result['title'])}", "", md_text(result["summary"]), "", *brief_markdown(result.get("brief")), "## 来源与范围", "",
              f"- 来源：{md_text(source['filename'])}",
              f"- 演示数据：{'是；合成生成，不代表真实业务' if source['is_demo'] else '否'}",
@@ -174,9 +213,13 @@ def render_markdown(result, goal):
     lines.extend(f"- {md_text(note)}" for note in source["notes"])
     lines += ["", "## 核心指标", "", "| 指标 | 数值 |", "| --- | --- |",
               f"| 缺失单元格 | {overview['missing_cells']:,} |",
-              f"| 缺失率 | {overview['missing_pct']:.2f}% |",
-              f"| 完全重复行 | {overview['duplicate_rows']:,} |",
-              f"| 启发式质量评分 | {overview['quality_score']} / 100 |", "", "## 数据洞察", ""]
+              f"| 缺失率 | {overview['missing_pct']:.2f}% |"]
+    if projection:
+        lines += ["", "本例只保留选定分析字段。同值记录不等于同一业务记录，不据此对原始数据作质量评级或去重。"]
+    else:
+        lines += [f"| 完全重复行 | {overview['duplicate_rows']:,} |",
+                  f"| 启发式质量评分 | {overview['quality_score']} / 100 |"]
+    lines += ["", "## 数据洞察", ""]
     for insight in result["insights"]:
         lines += [f"### {md_text(insight['title'])}", "", md_text(insight["body"]), "",
                   f"统计依据：{md_text(insight['evidence'])}", ""]
@@ -205,6 +248,8 @@ def render_markdown(result, goal):
               "- 质量分为启发式指标：100 − 缺失单元格百分比×0.6 − 重复行比例×25 − 常量列比例×15，下限 0。",
               "- IQR 使用 Q1−1.5×IQR 与 Q3+1.5×IQR；潜在极端值不等于错误值；相关不代表因果。",
               "- 日期只识别真实日期型或明确的年/月/日文本；不会将数值 ID 或年份强行转换为时间。"]
+    if projection:
+        lines = [line for line in lines if not line.startswith(("- 重复行数不包含", "- 质量分为启发式指标"))]
     lines.extend("- " + md_text(note) for note in result["agent"]["notes"])
     return "\n".join(lines) + "\n"
 
@@ -212,9 +257,13 @@ def render_markdown(result, goal):
 def render_html(result, markdown, goal=""):
     title = escape(result["title"])
     source, overview = result["source"], result["overview"]
-    metrics = "".join(f'<div class="metric"><small>{label}</small><strong>{value}</strong></div>' for label, value in [
+    projection = source.get("quality_scope") == "selected_fields"
+    metric_values = [
         ("分析行数", f"{overview['rows']:,}"), ("字段数量", str(overview["columns"])),
-        ("缺失率", f"{overview['missing_pct']:.2f}%"), ("质量评分 · 启发式", f"{overview['quality_score']} / 100")])
+        ("缺失率", f"{overview['missing_pct']:.2f}%")]
+    metric_values.append(("聚合图表", str(len(result["charts"]))) if projection else
+                         ("质量评分 · 启发式", f"{overview['quality_score']} / 100"))
+    metrics = "".join(f'<div class="metric"><small>{label}</small><strong>{value}</strong></div>' for label, value in metric_values)
     source_notes = "".join(f"<li>{escape(note)}</li>" for note in source["notes"])
     source_html = (f'<section class="panel"><h2>来源与分析范围</h2><dl><dt>数据文件</dt><dd>{escape(source["filename"])}</dd>'
                    f'<dt>数据性质</dt><dd>{"公开数据的聚合分析示例" if source.get("public_example") else "合成演示数据，不代表真实业务" if source["is_demo"] else "用户上传的数据集"}</dd>'
@@ -232,6 +281,9 @@ def render_html(result, markdown, goal=""):
                "质量评分 = 100 − 缺失单元格百分比×0.6 − 重复行比例×25 − 常量列比例×15，下限为 0。它不代表数据真实性或模型准确率。",
                "IQR 极端值边界为 Q1−1.5×IQR 与 Q3+1.5×IQR；提示不等同于错误数据。",
                "日期仅使用真实日期型或全部有效的明确年/月/日文本；带时区文本会统一到 UTC。"] + result["agent"]["notes"]
+    if projection:
+        methods = [note for note in methods if not note.startswith(("重复行数不包含", "质量评分 ="))]
+        methods.append("本例只保留选定分析字段。同值记录不等于同一业务记录，不据此对原始数据作质量评级或去重。")
     methods_html = "".join(f"<li>{escape(item)}</li>" for item in methods)
     charts = []
     chart_cards = {}

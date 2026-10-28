@@ -298,12 +298,22 @@ def analyze(df, source, goal, target, progress):
     if any(df[name].dropna().abs().gt(1e150).any() for name in df.select_dtypes(include=["number"]).columns):
         raise DatasetError("部分数值的绝对值超过安全分析范围（1e150），请先缩放计量单位后重新上传。")
     kinds = detect_types(df)
-    from .explanations import choose_focus, build_brief, is_rank
+    from .explanations import choose_focus, build_brief, is_rank, filter_excluded_model_evidence
     if target and target not in df.columns:
         source["notes"].append("指定的关注字段不存在；本次不自动换成其他指标，请检查字段名后重新分析。")
-    target, focus_origin = choose_focus(df, goal, target)
+    context = source.get("analysis_context", {})
+    context_categories = context.get("categorical_fields", []) if isinstance(context, dict) else []
+    if isinstance(context_categories, list):
+        # Explicit code definitions take precedence over storage dtype. Codes
+        # still retain their raw values; only the analytical role changes.
+        kinds.update({field: "categorical" for field in context_categories if field in df.columns})
+    target, focus_origin = choose_focus(df, goal, target, context)
     if focus_origin == "auto":
         source["notes"].append(f"已根据字段和问题自动关注「{target}」，可在新建分析时更换。")
+    context_excluded = context.get("exclude_fields", {}) if isinstance(context, dict) else {}
+    if isinstance(context_excluded, (dict, list)) and context_excluded:
+        source["notes"].append("来源指定的解释排除字段只保留基础EDA，不作为重点关系或外部模型证据："
+                               + "、".join(str(field) for field in context_excluded if field in df.columns) + "。")
     profiles = column_profiles(df, kinds)
     excluded = [name for name in df.columns if is_identifier(name, df[name]) and not is_rank(name)]
     if target in excluded and kinds[target] == "numeric":
@@ -343,4 +353,4 @@ def analyze(df, source, goal, target, progress):
                   "outliers": dict(list(outliers.items())[:10]), "excluded_identifiers": excluded[:20],
                   "eda_evidence": model_evidence(eda)}
     aggregates["explanation_evidence"] = explanation_evidence
-    return result, aggregates
+    return result, filter_excluded_model_evidence(aggregates, context)

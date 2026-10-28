@@ -15,8 +15,8 @@ export type Column = {
 export type Chart = { id: string; title: string; description: string; type: string; figure: { data: Record<string, any>[]; layout: Record<string, any> }; wide?: boolean; section?: SectionKey; fields?: string[]; sample_notes?: string[] };
 export type Result = {
   title: string; summary: string;
-  source: { filename: string; is_demo: boolean; analyzed_rows: number; total_rows: number | null; sampled: boolean; sheet?: string | null; notes: string[] };
-  overview: { rows: number; columns: number; numeric_columns: number; categorical_columns: number; missing_cells: number; missing_pct: number; duplicate_rows: number; quality_score: number };
+  source: { filename: string; is_demo: boolean; analyzed_rows: number; total_rows: number | null; sampled: boolean; sheet?: string | null; notes: string[]; quality_scope?: 'selected_fields' };
+  overview: { rows: number; columns: number; numeric_columns: number; categorical_columns: number; missing_cells: number; missing_pct: number; duplicate_rows?: number; quality_score?: number };
   columns: Column[]; charts: Chart[];
   insights: { title: string; body: string; level: 'info' | 'warning' | 'success'; evidence: string }[];
   recommendations: string[]; preview: { columns: string[]; rows: unknown[][] };
@@ -28,10 +28,19 @@ export type UploadSchema = {
   suggested_target: string | null; analyzed_rows: number; notes: string[];
   questions: {label: string; target: string | null; goal: string}[];
 };
+export type QuestionAnswer = {
+  id: string; question: string; answer: string;
+  status: 'supported' | 'partial' | 'insufficient'; status_label?: string;
+  explanation: string; evidence: string; caveat: string; next_step: string;
+  fields: string[]; n: number; rho: number | null; finding_ids: string[];
+  method?: 'spearman' | 'group_summary' | 'event_rate' | 'category_share' | 'excluded';
+  groups?: {group_id?: string; label: string; n: number; supported?: boolean; events?: number; rate_pct?: number; mean?: number; median?: number}[];
+  difference_pp?: number | null;
+};
 export type ExplanationBrief = {
   version: number; headline: string; answer: string; goal: string;
   focus: {column: string | null; label: string | null; origin: string; lower_is_better: boolean; meaning: string};
-  question_answers?: {id: string; question: string; answer: string; status: 'supported' | 'partial' | 'insufficient'; status_label?: string; explanation: string; evidence: string; caveat: string; next_step: string; fields: string[]; n: number; rho: number | null; finding_ids: string[]}[];
+  question_answers?: QuestionAnswer[];
   findings: {id: string; kind: string; title: string; takeaway: string; explanation: string; evidence: string; caveat: string; n: number; fields: string[]; chart_ids: string[]; next_step: string}[];
   next_questions: string[]; caveats: string[];
   coverage: {analyzed_rows: number; numeric_fields_scanned: number; relationships_evaluated: number};

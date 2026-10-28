@@ -1,0 +1,651 @@
+{
+  "slug": "hotel-city-cancellations",
+  "title": "城市酒店：哪些预订更常被取消？",
+  "description": "City Hotel完整子群79,330笔；两例合起来覆盖原始119,390笔，来自同一数据源。",
+  "finding": "79,330条有效记录中，取消预订有33,102条，占41.7%。",
+  "domain": "商业",
+  "topic": "酒店预订",
+  "provenance": {
+    "citation": "Antonio, de Almeida & Nunes (2019), Hotel booking demand datasets; Kaggle curator Jesse Mostipak; CSV compilation Thomas Mock & Antoine Bichat",
+    "url": "https://doi.org/10.1016/j.dib.2018.11.126",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "kaggle_url": "https://www.kaggle.com/datasets/jessemostipak/hotel-booking-demand",
+    "dataset_version": 1,
+    "accessed_at": "2026-10-28",
+    "source_sha256": "7c2ae42a7353905ea136e5c2287f17c92c5435826598bfbb8491c6f0c7b1fc06",
+    "population": "City Hotel完整子群79,330笔；两例合起来覆盖原始119,390笔，来自同一数据源。",
+    "preprocessing": "先按hotel=City Hotel选取完整子群，未按文件前缀截断；保留17个选定字段，未删行、去重、填补或缩放。",
+    "publication": "公开页与下载仅含聚合统计、分箱计数和解释，未捆绑原始行、个人标识或散点。代码AGPL-3.0与各来源数据许可分别适用。"
+  },
+  "result": {
+    "title": "城市酒店：哪些预订更常被取消？",
+    "summary": "本样本可比较的组中，「大于163 至629（含上界）」的取消预订比例为62.5%（12395/19827），「0 至23（含两端）」为19.6%（3946/20141），绝对相差42.9个百分点。本样本可比较的组中，「团队（Groups）」的取消预订比例为68.9%（9623/13975），「免费招待（Complementary）」为11.8%（64/542），绝对相差57.1个百分点。",
+    "source": {
+      "filename": "hotel-city-cancellations.csv",
+      "is_demo": false,
+      "analyzed_rows": 79330,
+      "total_rows": 79330,
+      "sampled": false,
+      "sheet": null,
+      "notes": [
+        "文本编码：UTF-8。",
+        "两家葡萄牙酒店、计划到店日期2015年7月至2017年8月的历史记录；取到店前快照，不是纯粹预订创建时点。未控制价格、渠道或客户构成，不能把组间差异当作改政策的效果。agent/company空值表示不适用；本例不纳入它们。剔除订金、实际分房、预订变更、特别要求和最终预订状态等时点可能靠后的字段；不计算取消造成的营收损失。",
+        "先按hotel=City Hotel选取完整子群，未按文件前缀截断；保留17个选定字段，未删行、去重、填补或缩放。",
+        "City Hotel完整子群79,330笔；两例合起来覆盖原始119,390笔，来自同一数据源。",
+        "先按hotel=City Hotel选取完整子群，未按文件前缀截断；保留17个选定字段，未删行、去重、填补或缩放。",
+        "公开页与下载仅含聚合统计、分箱计数和解释，未捆绑原始行、个人标识或散点。代码AGPL-3.0与各来源数据许可分别适用。",
+        "两家葡萄牙酒店、计划到店日期2015年7月至2017年8月的历史记录；取到店前快照，不是纯粹预订创建时点。未控制价格、渠道或客户构成，不能把组间差异当作改政策的效果。agent/company空值表示不适用；本例不纳入它们。剔除订金、实际分房、预订变更、特别要求和最终预订状态等时点可能靠后的字段；不计算取消造成的营收损失。",
+        "原始来源：https://doi.org/10.1016/j.dib.2018.11.126",
+        "Kaggle来源：https://www.kaggle.com/datasets/jessemostipak/hotel-booking-demand",
+        "数据许可：CC BY 4.0",
+        "来源署名：Antonio, de Almeida & Nunes (2019), Hotel booking demand datasets; Kaggle curator Jesse Mostipak; CSV compilation Thomas Mock & Antoine Bichat"
+      ],
+      "public_example": true,
+      "quality_scope": "selected_fields"
+    },
+    "overview": {
+      "rows": 79330,
+      "columns": 17,
+      "numeric_columns": 8,
+      "categorical_columns": 9,
+      "missing_cells": 4,
+      "missing_pct": 0.0
+    },
+    "brief": {
+      "version": 1,
+      "headline": "按提前预订天数分组，取消预订比例相差42.9个百分点",
+      "answer": "本样本可比较的组中，「大于163 至629（含上界）」的取消预订比例为62.5%（12395/19827），「0 至23（含两端）」为19.6%（3946/20141），绝对相差42.9个百分点。本样本可比较的组中，「团队（Groups）」的取消预订比例为68.9%（9623/13975），「免费招待（Complementary）」为11.8%（64/542），绝对相差57.1个百分点。",
+      "goal": "提前预订天数、客源渠道与预订取消记录有什么关系？请给出各组取消数量、分母和相差的百分点。",
+      "focus": {
+        "column": "is_canceled",
+        "label": "预订取消记录",
+        "origin": "user",
+        "lower_is_better": false,
+        "meaning": "is_canceled=1表示该历史预订最终取消，0表示未取消；比例以本例酒店的预订记录为分母，不是营收损失率。",
+        "analyzable": true,
+        "kind": "event"
+      },
+      "findings": [
+        {
+          "id": "finding-1",
+          "kind": "overview",
+          "title": "先看懂预订取消记录",
+          "takeaway": "79,330条有效记录中，取消预订有33,102条，占41.7%。",
+          "explanation": "is_canceled=1表示该历史预订最终取消，0表示未取消；比例以本例酒店的预订记录为分母，不是营收损失率。",
+          "evidence": "事件明确定义为is_canceled=1；分子=33102；目标有效分母=79330；目标缺失=0。",
+          "fields": [
+            "is_canceled"
+          ],
+          "chart_ids": [
+            "public-distribution",
+            "public-question-1"
+          ],
+          "caveat": "所有比例的分母是已观察的有效记录；不是因果结论、未来预测或统计显著性。样本收入或订单结构不能直接推出促销效果、利润或未来销量。",
+          "n": 79330,
+          "next_step": "先核对目标取值的定义、记录范围和采集时间。"
+        },
+        {
+          "id": "finding-2",
+          "kind": "group",
+          "title": "按客源渠道比较取消预订",
+          "takeaway": "本样本可比较的组中，「团队（Groups）」的取消预订比例为68.9%（9623/13975），「免费招待（Complementary）」为11.8%（64/542），绝对相差57.1个百分点。",
+          "explanation": "这里每100条已观察记录中大约有多少条取消预订，分母是各组同时有值的记录，不是相对风险，也不是改变组别后的效果。来源原有客源类别；Groups为团队、Direct为直订、Online TA为在线旅行代理。并非随机分配的渠道试验。",
+          "evidence": "成对有效 n=79330；排除缺失任意一项的0条记录。每个可比较组至少20条；支持不足的1组共2条仍保留计数。各组计数=「线下旅行代理／运营商（Offline TA/TO）」7173/16747；「在线旅行代理（Online TA）」14491/38748；「团队（Groups）」9623/13975；「免费招待（Complementary）」64/542；「直订（Direct）」1056/6093；「企业（Corporate）」641/2986；「未定义（Undefined）」2/2；「航空（Aviation）」52/237。",
+          "fields": [
+            "market_segment",
+            "is_canceled"
+          ],
+          "chart_ids": [
+            "public-question-2"
+          ],
+          "caveat": "分组比较是样本描述；未做显著性检验、混杂控制或独立预测验证，不能认定因果。样本收入或订单结构不能直接推出促销效果、利润或未来销量。",
+          "n": 79330,
+          "next_step": "核对「客源渠道」各组的采集范围、记录时间与其他构成，再用独立记录复核。",
+          "groups": [
+            {
+              "label": "线下旅行代理／运营商（Offline TA/TO）",
+              "group_id": "B01",
+              "n": 16747,
+              "supported": true,
+              "events": 7173,
+              "rate_pct": 42.83155191974682
+            },
+            {
+              "label": "在线旅行代理（Online TA）",
+              "group_id": "B02",
+              "n": 38748,
+              "supported": true,
+              "events": 14491,
+              "rate_pct": 37.3980592546712
+            },
+            {
+              "label": "团队（Groups）",
+              "group_id": "B03",
+              "n": 13975,
+              "supported": true,
+              "events": 9623,
+              "rate_pct": 68.85867620751341
+            },
+            {
+              "label": "免费招待（Complementary）",
+              "group_id": "B04",
+              "n": 542,
+              "supported": true,
+              "events": 64,
+              "rate_pct": 11.808118081180812
+            },
+            {
+              "label": "直订（Direct）",
+              "group_id": "B05",
+              "n": 6093,
+              "supported": true,
+              "events": 1056,
+              "rate_pct": 17.331363860167407
+            },
+            {
+              "label": "企业（Corporate）",
+              "group_id": "B06",
+              "n": 2986,
+              "supported": true,
+              "events": 641,
+              "rate_pct": 21.46684527796383
+            },
+            {
+              "label": "未定义（Undefined）",
+              "group_id": "B07",
+              "n": 2,
+              "supported": false,
+              "events": 2,
+              "rate_pct": 100.0
+            },
+            {
+              "label": "航空（Aviation）",
+              "group_id": "B08",
+              "n": 237,
+              "supported": true,
+              "events": 52,
+              "rate_pct": 21.940928270042196
+            }
+          ],
+          "method": "event_rate"
+        },
+        {
+          "id": "finding-3",
+          "kind": "group",
+          "title": "按提前预订天数比较取消预订",
+          "takeaway": "本样本可比较的组中，「大于163 至629（含上界）」的取消预订比例为62.5%（12395/19827），「0 至23（含两端）」为19.6%（3946/20141），绝对相差42.9个百分点。",
+          "explanation": "这里每100条已观察记录中大约有多少条取消预订，分母是各组同时有值的记录，不是相对风险，也不是改变组别后的效果。录入预订至计划到店相隔的天数；分位分组不是业务风险等级。",
+          "evidence": "成对有效 n=79330；排除缺失任意一项的0条记录。每个可比较组至少20条；支持不足的0组共0条仍保留计数。按成对有效记录的四分位切分，重复分界合并；首段含最小值，其余区间左开右闭。实际分界=0.0, 23.0, 74.0, 163.0, 629.0；区间标签的数字按最多12位有效数字显示。各组计数=「0 至23（含两端）」3946/20141；「大于23 至74（含上界）」7855/19769；「大于74 至163（含上界）」8906/19593；「大于163 至629（含上界）」12395/19827。",
+          "fields": [
+            "lead_time",
+            "is_canceled"
+          ],
+          "chart_ids": [
+            "public-question-1"
+          ],
+          "caveat": "分组比较是样本描述；未做显著性检验、混杂控制或独立预测验证，不能认定因果。样本收入或订单结构不能直接推出促销效果、利润或未来销量。",
+          "n": 79330,
+          "next_step": "核对「提前预订天数」各组的采集范围、记录时间与其他构成，再用独立记录复核。",
+          "groups": [
+            {
+              "label": "0 至23（含两端）",
+              "group_id": "B01",
+              "n": 20141,
+              "supported": true,
+              "events": 3946,
+              "rate_pct": 19.591877265279777
+            },
+            {
+              "label": "大于23 至74（含上界）",
+              "group_id": "B02",
+              "n": 19769,
+              "supported": true,
+              "events": 7855,
+              "rate_pct": 39.7339268551773
+            },
+            {
+              "label": "大于74 至163（含上界）",
+              "group_id": "B03",
+              "n": 19593,
+              "supported": true,
+              "events": 8906,
+              "rate_pct": 45.455009442147706
+            },
+            {
+              "label": "大于163 至629（含上界）",
+              "group_id": "B04",
+              "n": 19827,
+              "supported": true,
+              "events": 12395,
+              "rate_pct": 62.51576133555253
+            }
+          ],
+          "method": "event_rate"
+        },
+        {
+          "id": "finding-4",
+          "kind": "group",
+          "title": "按meal比较取消预订",
+          "takeaway": "本样本可比较的组中，「FB」的取消预订比例为79.5%（35/44），「SC」为37.5%（3963/10564），绝对相差42.0个百分点。",
+          "explanation": "这里每100条已观察记录中大约有多少条取消预订，分母是各组同时有值的记录，不是相对风险，也不是改变组别后的效果。按上传表中的原始口径比较；数值大小的业务含义需结合字段定义。",
+          "evidence": "成对有效 n=79330；排除缺失任意一项的0条记录。每个可比较组至少20条；支持不足的0组共0条仍保留计数。各组计数=「HB」2437/6417；「BB」26667/62305；「SC」3963/10564；「FB」35/44。",
+          "fields": [
+            "meal",
+            "is_canceled"
+          ],
+          "chart_ids": [],
+          "caveat": "分组比较是样本描述；未做显著性检验、混杂控制或独立预测验证，不能认定因果。样本收入或订单结构不能直接推出促销效果、利润或未来销量。",
+          "n": 79330,
+          "next_step": "核对「meal」各组的采集范围、记录时间与其他构成，再用独立记录复核。",
+          "groups": [
+            {
+              "label": "HB",
+              "group_id": "B01",
+              "n": 6417,
+              "supported": true,
+              "events": 2437,
+              "rate_pct": 37.9772479351722
+            },
+            {
+              "label": "BB",
+              "group_id": "B02",
+              "n": 62305,
+              "supported": true,
+              "events": 26667,
+              "rate_pct": 42.80073830350694
+            },
+            {
+              "label": "SC",
+              "group_id": "B03",
+              "n": 10564,
+              "supported": true,
+              "events": 3963,
+              "rate_pct": 37.5141991669822
+            },
+            {
+              "label": "FB",
+              "group_id": "B04",
+              "n": 44,
+              "supported": true,
+              "events": 35,
+              "rate_pct": 79.54545454545455
+            }
+          ],
+          "method": "event_rate"
+        },
+        {
+          "id": "finding-5",
+          "kind": "group",
+          "title": "按预订客户类型比较取消预订",
+          "takeaway": "本样本可比较的组中，「Contract」的取消预订比例为48.0%（1105/2300），「Group」为9.9%（29/293），绝对相差38.1个百分点。",
+          "explanation": "这里每100条已观察记录中大约有多少条取消预订，分母是各组同时有值的记录，不是相对风险，也不是改变组别后的效果。原有Group/Transient/Transient-Party/Contract分类；与客源渠道中的Groups不是同一字段。",
+          "evidence": "成对有效 n=79330；排除缺失任意一项的0条记录。每个可比较组至少20条；支持不足的0组共0条仍保留计数。各组计数=「Transient」27098/59404；「Transient-Party」4870/17333；「Contract」1105/2300；「Group」29/293。",
+          "fields": [
+            "customer_type",
+            "is_canceled"
+          ],
+          "chart_ids": [],
+          "caveat": "分组比较是样本描述；未做显著性检验、混杂控制或独立预测验证，不能认定因果。样本收入或订单结构不能直接推出促销效果、利润或未来销量。",
+          "n": 79330,
+          "next_step": "核对「预订客户类型」各组的采集范围、记录时间与其他构成，再用独立记录复核。",
+          "groups": [
+            {
+              "label": "Transient",
+              "group_id": "B01",
+              "n": 59404,
+              "supported": true,
+              "events": 27098,
+              "rate_pct": 45.616456804255606
+            },
+            {
+              "label": "Transient-Party",
+              "group_id": "B02",
+              "n": 17333,
+              "supported": true,
+              "events": 4870,
+              "rate_pct": 28.096694167195523
+            },
+            {
+              "label": "Contract",
+              "group_id": "B03",
+              "n": 2300,
+              "supported": true,
+              "events": 1105,
+              "rate_pct": 48.04347826086956
+            },
+            {
+              "label": "Group",
+              "group_id": "B04",
+              "n": 293,
+              "supported": true,
+              "events": 29,
+              "rate_pct": 9.897610921501707
+            }
+          ],
+          "method": "event_rate"
+        }
+      ],
+      "question_answers": [
+        {
+          "id": "question-1",
+          "question": "提前预订天数与预订取消记录有什么关系？",
+          "answer": "本样本可比较的组中，「大于163 至629（含上界）」的取消预订比例为62.5%（12395/19827），「0 至23（含两端）」为19.6%（3946/20141），绝对相差42.9个百分点。",
+          "status": "supported",
+          "explanation": "这里每100条已观察记录中大约有多少条取消预订，分母是各组同时有值的记录，不是相对风险，也不是改变组别后的效果。录入预订至计划到店相隔的天数；分位分组不是业务风险等级。",
+          "evidence": "成对有效 n=79330；排除缺失任意一项的0条记录。每个可比较组至少20条；支持不足的0组共0条仍保留计数。按成对有效记录的四分位切分，重复分界合并；首段含最小值，其余区间左开右闭。实际分界=0.0, 23.0, 74.0, 163.0, 629.0；区间标签的数字按最多12位有效数字显示。各组计数=「0 至23（含两端）」3946/20141；「大于23 至74（含上界）」7855/19769；「大于74 至163（含上界）」8906/19593；「大于163 至629（含上界）」12395/19827。",
+          "caveat": "分组比较是样本描述；未做显著性检验、混杂控制或独立预测验证，不能认定因果。样本收入或订单结构不能直接推出促销效果、利润或未来销量。",
+          "next_step": "核对「提前预订天数」各组的采集范围、记录时间与其他构成，再用独立记录复核。",
+          "fields": [
+            "lead_time",
+            "is_canceled"
+          ],
+          "n": 79330,
+          "rho": null,
+          "finding_ids": [
+            "finding-3"
+          ],
+          "method": "event_rate",
+          "groups": [
+            {
+              "label": "0 至23（含两端）",
+              "group_id": "B01",
+              "n": 20141,
+              "supported": true,
+              "events": 3946,
+              "rate_pct": 19.591877265279777
+            },
+            {
+              "label": "大于23 至74（含上界）",
+              "group_id": "B02",
+              "n": 19769,
+              "supported": true,
+              "events": 7855,
+              "rate_pct": 39.7339268551773
+            },
+            {
+              "label": "大于74 至163（含上界）",
+              "group_id": "B03",
+              "n": 19593,
+              "supported": true,
+              "events": 8906,
+              "rate_pct": 45.455009442147706
+            },
+            {
+              "label": "大于163 至629（含上界）",
+              "group_id": "B04",
+              "n": 19827,
+              "supported": true,
+              "events": 12395,
+              "rate_pct": 62.51576133555253
+            }
+          ],
+          "status_label": "样本分组比较",
+          "difference_pp": 42.923884070272756
+        },
+        {
+          "id": "question-2",
+          "question": "客源渠道与预订取消记录有什么关系？",
+          "answer": "本样本可比较的组中，「团队（Groups）」的取消预订比例为68.9%（9623/13975），「免费招待（Complementary）」为11.8%（64/542），绝对相差57.1个百分点。",
+          "status": "supported",
+          "explanation": "这里每100条已观察记录中大约有多少条取消预订，分母是各组同时有值的记录，不是相对风险，也不是改变组别后的效果。来源原有客源类别；Groups为团队、Direct为直订、Online TA为在线旅行代理。并非随机分配的渠道试验。",
+          "evidence": "成对有效 n=79330；排除缺失任意一项的0条记录。每个可比较组至少20条；支持不足的1组共2条仍保留计数。各组计数=「线下旅行代理／运营商（Offline TA/TO）」7173/16747；「在线旅行代理（Online TA）」14491/38748；「团队（Groups）」9623/13975；「免费招待（Complementary）」64/542；「直订（Direct）」1056/6093；「企业（Corporate）」641/2986；「未定义（Undefined）」2/2；「航空（Aviation）」52/237。",
+          "caveat": "分组比较是样本描述；未做显著性检验、混杂控制或独立预测验证，不能认定因果。样本收入或订单结构不能直接推出促销效果、利润或未来销量。",
+          "next_step": "核对「客源渠道」各组的采集范围、记录时间与其他构成，再用独立记录复核。",
+          "fields": [
+            "market_segment",
+            "is_canceled"
+          ],
+          "n": 79330,
+          "rho": null,
+          "finding_ids": [
+            "finding-2"
+          ],
+          "method": "event_rate",
+          "groups": [
+            {
+              "label": "线下旅行代理／运营商（Offline TA/TO）",
+              "group_id": "B01",
+              "n": 16747,
+              "supported": true,
+              "events": 7173,
+              "rate_pct": 42.83155191974682
+            },
+            {
+              "label": "在线旅行代理（Online TA）",
+              "group_id": "B02",
+              "n": 38748,
+              "supported": true,
+              "events": 14491,
+              "rate_pct": 37.3980592546712
+            },
+            {
+              "label": "团队（Groups）",
+              "group_id": "B03",
+              "n": 13975,
+              "supported": true,
+              "events": 9623,
+              "rate_pct": 68.85867620751341
+            },
+            {
+              "label": "免费招待（Complementary）",
+              "group_id": "B04",
+              "n": 542,
+              "supported": true,
+              "events": 64,
+              "rate_pct": 11.808118081180812
+            },
+            {
+              "label": "直订（Direct）",
+              "group_id": "B05",
+              "n": 6093,
+              "supported": true,
+              "events": 1056,
+              "rate_pct": 17.331363860167407
+            },
+            {
+              "label": "企业（Corporate）",
+              "group_id": "B06",
+              "n": 2986,
+              "supported": true,
+              "events": 641,
+              "rate_pct": 21.46684527796383
+            },
+            {
+              "label": "未定义（Undefined）",
+              "group_id": "B07",
+              "n": 2,
+              "supported": false,
+              "events": 2,
+              "rate_pct": 100.0
+            },
+            {
+              "label": "航空（Aviation）",
+              "group_id": "B08",
+              "n": 237,
+              "supported": true,
+              "events": 52,
+              "rate_pct": 21.940928270042196
+            }
+          ],
+          "status_label": "样本分组比较",
+          "difference_pp": 57.050558126332604
+        }
+      ],
+      "caveats": [
+        "两家葡萄牙酒店、计划到店日期2015年7月至2017年8月的历史记录；取到店前快照，不是纯粹预订创建时点。未控制价格、渠道或客户构成，不能把组间差异当作改政策的效果。agent/company空值表示不适用；本例不纳入它们。剔除订金、实际分房、预订变更、特别要求和最终预订状态等时点可能靠后的字段；不计算取消造成的营收损失。",
+        "所有比例的分母是已观察的有效记录；不是因果结论、未来预测或统计显著性。样本收入或订单结构不能直接推出促销效果、利润或未来销量。",
+        "1=最终取消，0=未取消；每行一笔预订，不是一个独立旅客。"
+      ],
+      "next_questions": [
+        "核对「提前预订天数」各组的采集范围、记录时间与其他构成，再用独立记录复核。",
+        "核对「客源渠道」各组的采集范围、记录时间与其他构成，再用独立记录复核。"
+      ],
+      "coverage": {
+        "analyzed_rows": 79330,
+        "numeric_fields_scanned": 8,
+        "relationships_evaluated": 16,
+        "questions_detected": 2,
+        "questions_answered": 2,
+        "questions_omitted": 0,
+        "group_comparisons_evaluated": 16
+      }
+    },
+    "charts": [
+      {
+        "id": "public-distribution",
+        "title": "先看总体构成",
+        "description": "79,330条目标有效记录；缺失0条。",
+        "type": "group_comparison",
+        "fields": [
+          "is_canceled"
+        ],
+        "sample_notes": [
+          "聚合统计；组间差异不表示因果，分组界限不是诊断或业务阈值。"
+        ],
+        "figure": {
+          "data": [
+            {
+              "type": "bar",
+              "x": [
+                "取消预订（1）",
+                "其他记录"
+              ],
+              "y": [
+                33102,
+                46228
+              ]
+            }
+          ],
+          "layout": {
+            "xaxis": {
+              "title": {
+                "text": "区间 / 原始类别"
+              }
+            },
+            "yaxis": {
+              "title": {
+                "text": "记录数"
+              },
+              "rangemode": "tozero"
+            }
+          }
+        }
+      },
+      {
+        "id": "public-question-1",
+        "title": "提前预订天数与预订取消记录有什么关系？",
+        "description": "0 至23（含两端）: 3946/20141; 大于23 至74（含上界）: 7855/19769; 大于74 至163（含上界）: 8906/19593; 大于163 至629（含上界）: 12395/19827。仅展示每组至少20条的组；其他组计数见问题依据。",
+        "type": "group_comparison",
+        "fields": [
+          "lead_time",
+          "is_canceled"
+        ],
+        "sample_notes": [
+          "聚合统计；组间差异不表示因果，分组界限不是诊断或业务阈值。"
+        ],
+        "figure": {
+          "data": [
+            {
+              "type": "bar",
+              "x": [
+                "0 至23（含两端）",
+                "大于23 至74（含上界）",
+                "大于74 至163（含上界）",
+                "大于163 至629（含上界）"
+              ],
+              "y": [
+                19.591877265279777,
+                39.7339268551773,
+                45.455009442147706,
+                62.51576133555253
+              ]
+            }
+          ],
+          "layout": {
+            "xaxis": {
+              "title": {
+                "text": "区间 / 原始类别"
+              }
+            },
+            "yaxis": {
+              "title": {
+                "text": "组内比例（%）"
+              },
+              "rangemode": "tozero"
+            }
+          }
+        }
+      },
+      {
+        "id": "public-question-2",
+        "title": "客源渠道与预订取消记录有什么关系？",
+        "description": "线下旅行代理／运营商（Offline TA/TO）: 7173/16747; 在线旅行代理（Online TA）: 14491/38748; 团队（Groups）: 9623/13975; 免费招待（Complementary）: 64/542; 直订（Direct）: 1056/6093; 企业（Corporate）: 641/2986; 航空（Aviation）: 52/237。仅展示每组至少20条的组；其他组计数见问题依据。",
+        "type": "group_comparison",
+        "fields": [
+          "market_segment",
+          "is_canceled"
+        ],
+        "sample_notes": [
+          "聚合统计；组间差异不表示因果，分组界限不是诊断或业务阈值。"
+        ],
+        "figure": {
+          "data": [
+            {
+              "type": "bar",
+              "x": [
+                "线下旅行代理／运营商（Offline TA/TO）",
+                "在线旅行代理（Online TA）",
+                "团队（Groups）",
+                "免费招待（Complementary）",
+                "直订（Direct）",
+                "企业（Corporate）",
+                "航空（Aviation）"
+              ],
+              "y": [
+                42.83155191974682,
+                37.3980592546712,
+                68.85867620751341,
+                11.808118081180812,
+                17.331363860167407,
+                21.46684527796383,
+                21.940928270042196
+              ]
+            }
+          ],
+          "layout": {
+            "xaxis": {
+              "title": {
+                "text": "区间 / 原始类别"
+              }
+            },
+            "yaxis": {
+              "title": {
+                "text": "组内比例（%）"
+              },
+              "rangemode": "tozero"
+            }
+          }
+        }
+      }
+    ],
+    "columns": [],
+    "insights": [],
+    "recommendations": [
+      "核对「提前预订天数」各组的采集范围、记录时间与其他构成，再用独立记录复核。",
+      "核对「客源渠道」各组的采集范围、记录时间与其他构成，再用独立记录复核。"
+    ],
+    "preview": {
+      "columns": [],
+      "rows": []
+    },
+    "agent": {
+      "mode": "statistical",
+      "model": null,
+      "notes": [
+        "真实Kaggle固定版本经本项目完整统计流程生成；未调用付费模型。公开报告只含聚合证据，浏览与下载不创建任务。"
+      ]
+    },
+    "duration_seconds": 0
+  }
+}
