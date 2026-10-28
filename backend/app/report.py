@@ -203,7 +203,7 @@ def render_html(result, markdown, goal=""):
         ("缺失率", f"{overview['missing_pct']:.2f}%"), ("质量评分 · 启发式", f"{overview['quality_score']} / 100")])
     source_notes = "".join(f"<li>{escape(note)}</li>" for note in source["notes"])
     source_html = (f'<section class="panel"><h2>来源与分析范围</h2><dl><dt>数据文件</dt><dd>{escape(source["filename"])}</dd>'
-                   f'<dt>数据性质</dt><dd>{"合成演示数据，不代表真实业务" if source["is_demo"] else "用户上传的数据集"}</dd>'
+                   f'<dt>数据性质</dt><dd>{"公开数据的聚合分析示例" if source.get("public_example") else "合成演示数据，不代表真实业务" if source["is_demo"] else "用户上传的数据集"}</dd>'
                    f'<dt>分析范围</dt><dd>{overview["rows"]:,} 行；{"已截取前 100,000 行，完整行数未知" if source["sampled"] else "完整读取"}</dd>'
                    f'<dt>分析目标</dt><dd>{escape(goal or "探索数据质量、分布与潜在关系。")}</dd>'
                    f'<dt>Agent 模式</dt><dd>{escape(result["agent"]["mode"])}'

@@ -22,6 +22,12 @@
 
 ## Graduation案例
 
+![公开分析示例目录](screenshots/12-public-examples.png)
+
+网站内置两个免登录的公开分析示例：`/?view=examples`为目录，`/?example=graduation-employability`和`/?example=graduation-academic`分别阅读就业能力与学业排名。登录页、研究室和侧栏均提供入口。示例与私有任务分开，只读浏览与下载不创建任务、不调用模型、不消耗额度。
+
+仓库中的`backend/app/example_data/`仅保留聚合快照：结论、分箱计数、排序关联与交叉组计数。不附学生编号、逐行数据、原始散点或私有任务标识。公开HTML和Markdown也由同一快照导出。数据来源、CC BY 4.0和预处理说明随页面与报告保留；它们不改变程序的AGPL许可。
+
 来源：Wang, Dongxuan (2025), *Graduation*, Mendeley Data, V1，[10.17632/c8ypkyswv3.1](https://data.mendeley.com/datasets/c8ypkyswv3/1)，CC BY 4.0。来源描述为河北农业大学2020届计算机专业253名毕业生的课程与量表记录；这不是独立的真实性审计。
 
 案例使用预处理CSV：原始86列中，五期就业指导取等权均值、七期形势与政策取等权均值，12列变2列，结果253行、76列；表头转snake_case，未删除学生、填补或标准化分数。原始86列工作簿超过产品80列限制且有两行表头，不能直接当作预处理文件。
@@ -32,6 +38,15 @@ PYTHONPATH=backend .venv/bin/python scripts/graduation-case.py \
 ```
 
 脚本生成学业、就业能力两个独立报告，不调用模型、不将数据写入仓库。也可在界面上传同一CSV，选择自动识别的问题。
+
+维护者可从相同预处理文件重建公开聚合快照（会更新仓库内的两个示例JSON）：
+
+```bash
+PYTHONPATH=backend .venv/bin/python scripts/build-graduation-examples.py \
+  --input /path/to/Graduation_clean.csv
+```
+
+公开API只有固定示例目录、详情及报告的GET请求免登录；其他账号数据、上传、任务和模型接口仍要求登录。示例内容随应用代码部署，不依赖本地数据目录或某个演示账号。
 
 - `gpa_rank`是名次，越小越靠前，不是GPA数值；课程可能参与排名计算，关联不能视为独立影响。
 - `employment_ability_scale`是自评，不是实际就业状态、就业率、薪资或录用。

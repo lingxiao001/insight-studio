@@ -1,6 +1,6 @@
 # API 契约
 
-所有业务接口使用 `/api`，JSON 字段为 snake_case。除健康检查、会话、登录、注册和退出外均需账号会话。账号 Cookie 不作为 URL 参数传递。对浏览器非只读 API 请求检查 Origin；开发代理只在本地允许指定的 Vite 来源。
+所有业务接口使用 `/api`，JSON 字段为 snake_case。除健康检查、会话、登录、注册、退出及下述固定公开示例的GET接口外均需账号会话。账号 Cookie 不作为 URL 参数传递。对浏览器非只读 API 请求检查 Origin；开发代理只在本地允许指定的 Vite 来源。
 
 上传、任务、下载和用量均按当前账号过滤，其他账号的资源 ID 返回 404。管理员只能配置共享模型，不因此获得普通报告接口的跨账号读取权限。已保存密钥永不通过 API 回传。
 
@@ -15,6 +15,17 @@
 | `POST /api/logout` | 删除会话 Cookie，返回 `{ok:true}` |
 
 登录与注册要求严格字符串，额外字段返回 422。注册账号规范与限流见[账号说明](accounts-and-quotas.md)。`model_enabled` 表示配置能力，不等于当前用户有可用费用；启用模型前还应成功读取用量且未锁定。
+
+## 公开分析示例
+
+| 方法与路径 | 输入或返回 |
+| --- | --- |
+| `GET /api/examples` | `{examples:[{slug,title,description,topic}]}` |
+| `GET /api/examples/{slug}` | `{slug,title,description,topic,provenance,result}` |
+| `GET /api/examples/{slug}/report.md` | 公开聚合快照的Markdown下载 |
+| `GET /api/examples/{slug}/report.html` | 公开聚合快照的离线HTML下载 |
+
+仅`graduation-employability`、`graduation-academic`两个固定slug的上述GET请求免登录。`provenance`含原始来源链接、DOI、许可、样本范围、预处理和公开内容说明。`result`沿用结果格式，但没有`eda`、逐行预览或字段画像，图表只包含聚合分箱、相关系数和交叉计数。浏览与下载不创建任务、不调用模型，也不读取任何账号的上传或报告目录。网站入口为`/?view=examples`和`/?example={slug}`。
 
 ## 上传、任务与报告
 

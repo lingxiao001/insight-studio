@@ -1,0 +1,287 @@
+{
+  "slug": "graduation-academic",
+  "title": "学业表现：哪些课程与排名更同步？",
+  "topic": "学业排名",
+  "description": "Web前端设计较高的记录，GPA排名通常更靠前",
+  "provenance": {
+    "citation": "Wang, Dongxuan (2025), Graduation, Mendeley Data, V1",
+    "url": "https://data.mendeley.com/datasets/c8ypkyswv3/1",
+    "doi": "10.17632/c8ypkyswv3.1",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "population": "来源描述为河北农业大学2020届计算机专业253名毕业生；本例不代表全国高校。",
+    "preprocessing": "保留253行；原86列中的五期就业指导、七期形势与政策分别取等权均值，得到76列；统一表头，未填补、删行或标准化。",
+    "publication": "公开页和下载报告仅包含聚合统计与解释，未附学生编号、逐行预览或个人散点。代码许可AGPL-3.0与数据许可分别适用。"
+  },
+  "result": {
+    "title": "学业表现：哪些课程与排名更同步？",
+    "summary": "Web前端设计较高的记录，GPA排名通常更靠前。这是名次，数值越小排名越靠前；不是GPA分数。课程成绩本身可能参与排名计算。",
+    "source": {
+      "filename": "Graduation_clean.csv",
+      "is_demo": false,
+      "analyzed_rows": 253,
+      "total_rows": 253,
+      "sampled": false,
+      "sheet": null,
+      "notes": [
+        "文本编码：UTF-8。",
+        "数据来源：Wang, Dongxuan (2025), Graduation, Mendeley Data, V1，DOI 10.17632/c8ypkyswv3.1，CC BY 4.0。",
+        "来源描述为河北农业大学2020届计算机专业253名毕业生；本例不代表全国高校。",
+        "保留253行；原86列中的五期就业指导、七期形势与政策分别取等权均值，得到76列；统一表头，未填补、删行或标准化。",
+        "公开页和下载报告仅包含聚合统计与解释，未附学生编号、逐行预览或个人散点。代码许可AGPL-3.0与数据许可分别适用。",
+        "原始来源：https://data.mendeley.com/datasets/c8ypkyswv3/1",
+        "数据许可：CC BY 4.0；https://creativecommons.org/licenses/by/4.0/"
+      ],
+      "public_example": true
+    },
+    "overview": {
+      "rows": 253,
+      "columns": 76,
+      "numeric_columns": 74,
+      "categorical_columns": 2,
+      "missing_cells": 0,
+      "missing_pct": 0.0,
+      "duplicate_rows": 0,
+      "quality_score": 100
+    },
+    "brief": {
+      "version": 1,
+      "headline": "Web前端设计较高的记录，GPA排名通常更靠前",
+      "answer": "Web前端设计较高的记录，GPA排名通常更靠前。这是名次，数值越小排名越靠前；不是GPA分数。课程成绩本身可能参与排名计算。",
+      "goal": "哪些课程成绩与GPA排名更相关？这些关系能说明什么，不能说明什么？",
+      "focus": {
+        "column": "gpa_rank",
+        "label": "GPA排名",
+        "origin": "user",
+        "lower_is_better": true,
+        "meaning": "这是名次，数值越小排名越靠前；不是GPA分数。课程成绩本身可能参与排名计算。"
+      },
+      "findings": [
+        {
+          "id": "finding-1",
+          "kind": "overview",
+          "title": "先看懂GPA排名",
+          "takeaway": "本表共有253条有效排名记录，名次越小越靠前。",
+          "explanation": "后面的课程关系会按‘排名靠前／靠后’解释。课程成绩可能是排名的组成部分，这些关系可帮助了解成绩结构，不能证明提升某门课就会改善排名。",
+          "evidence": "有效记录 n=253；中位数=127；Q1=64；Q3=190。",
+          "fields": [
+            "gpa_rank"
+          ],
+          "chart_ids": [
+            "public-distribution"
+          ],
+          "caveat": "分位区间描述样本分布，不是合格线或理想标准。",
+          "n": 253,
+          "next_step": "先核对这个指标的定义，再阅读关联发现。"
+        },
+        {
+          "id": "finding-2",
+          "kind": "measurement",
+          "title": "部分量表与目标排序高度对应，评分来源值得先核对",
+          "takeaway": "「品德自评」与「GPA排名」的排序关联绝对值达到0.98，两列在本表中提供的信息高度重合。",
+          "explanation": "可能是独立测量的结果，也可能与评分或数据整理方式有关；仅凭这张表无法区分。先核对原始问卷和评分规则，再解释真实能力差异。",
+          "evidence": "Spearman ρ=-0.9799；成对有效 n=253。",
+          "fields": [
+            "moral_character_scale",
+            "gpa_rank"
+          ],
+          "chart_ids": [
+            "public-relationships"
+          ],
+          "caveat": "高度同步不能证明量表有效，也不能据此认定数据造假。",
+          "n": 253,
+          "next_step": "核对量表是否独立采集，以及是否使用了排名或课程成绩打分。"
+        },
+        {
+          "id": "finding-3",
+          "kind": "relationship",
+          "title": "Web前端设计较高的记录，GPA排名通常更靠前",
+          "takeaway": "在253条同时有值的记录中，两项排序呈较强的共同变化。",
+          "explanation": "可先结合这项记录理解成绩差异；课程或量表与排名可能共享计算来源。",
+          "evidence": "Spearman ρ=-0.7825；成对有效 n=253；扫描73组目标关系，先按问题相关性、再参考关联程度筛选。",
+          "fields": [
+            "web_front_end_ui",
+            "gpa_rank"
+          ],
+          "chart_ids": [
+            "public-relationships"
+          ],
+          "caveat": "探索性筛选，未校正多重比较；不是因果效应或经验证的预测能力。",
+          "n": 253,
+          "next_step": "结合「Web前端设计」的记录口径，访谈不同表现的学生。"
+        },
+        {
+          "id": "finding-4",
+          "kind": "relationship",
+          "title": "高等数学A2较高的记录，GPA排名通常更靠前",
+          "takeaway": "在253条同时有值的记录中，两项排序呈较强的共同变化。",
+          "explanation": "可先结合这项记录理解成绩差异；课程或量表与排名可能共享计算来源。",
+          "evidence": "Spearman ρ=-0.7641；成对有效 n=253；扫描73组目标关系，先按问题相关性、再参考关联程度筛选。",
+          "fields": [
+            "advanced_mathematics_a2",
+            "gpa_rank"
+          ],
+          "chart_ids": [
+            "public-relationships"
+          ],
+          "caveat": "探索性筛选，未校正多重比较；不是因果效应或经验证的预测能力。",
+          "n": 253,
+          "next_step": "结合「高等数学A2」的记录口径，访谈不同表现的学生。"
+        },
+        {
+          "id": "finding-5",
+          "kind": "relationship",
+          "title": "数据库原理较高的记录，GPA排名通常更靠前",
+          "takeaway": "在253条同时有值的记录中，两项排序呈较强的共同变化。",
+          "explanation": "可先结合这项记录理解成绩差异；课程或量表与排名可能共享计算来源。",
+          "evidence": "Spearman ρ=-0.7461；成对有效 n=253；扫描73组目标关系，先按问题相关性、再参考关联程度筛选。",
+          "fields": [
+            "database_principles",
+            "gpa_rank"
+          ],
+          "chart_ids": [
+            "public-relationships"
+          ],
+          "caveat": "探索性筛选，未校正多重比较；不是因果效应或经验证的预测能力。",
+          "n": 253,
+          "next_step": "结合「数据库原理」的记录口径，访谈不同表现的学生。"
+        }
+      ],
+      "next_questions": [
+        "核对量表是否独立采集，以及是否使用了排名或课程成绩打分。",
+        "结合「Web前端设计」的记录口径，访谈不同表现的学生。",
+        "结合「高等数学A2」的记录口径，访谈不同表现的学生。"
+      ],
+      "caveats": [
+        "结论只描述本次读取的记录；共同变化不等于一个因素造成另一个结果。",
+        "这是名次，数值越小排名越靠前；不是GPA分数。课程成绩本身可能参与排名计算。"
+      ],
+      "coverage": {
+        "analyzed_rows": 253,
+        "numeric_fields_scanned": 74,
+        "relationships_evaluated": 73
+      }
+    },
+    "charts": [
+      {
+        "id": "public-distribution",
+        "title": "GPA排名的分布",
+        "description": "253条有效记录的分箱计数。",
+        "type": "histogram",
+        "fields": [
+          "GPA排名"
+        ],
+        "figure": {
+          "data": [
+            {
+              "type": "bar",
+              "x": [
+                "1–32.5（不含右端）",
+                "32.5–64（不含右端）",
+                "64–95.5（不含右端）",
+                "95.5–127（不含右端）",
+                "127–158.5（不含右端）",
+                "158.5–190（不含右端）",
+                "190–221.5（不含右端）",
+                "221.5–253（含右端）"
+              ],
+              "y": [
+                32,
+                31,
+                32,
+                31,
+                32,
+                31,
+                32,
+                32
+              ],
+              "orientation": "v"
+            }
+          ],
+          "layout": {
+            "xaxis": {
+              "title": {
+                "text": "区间 / 分组"
+              }
+            },
+            "yaxis": {
+              "title": {
+                "text": "记录数"
+              }
+            }
+          }
+        },
+        "sample_notes": [
+          "仅展示聚合统计。关联不表示因果；分位划分不表示合格标准。"
+        ]
+      },
+      {
+        "id": "public-relationships",
+        "title": "主要发现对应的排序关联",
+        "description": "每组均使用253条成对有效记录；数值保留四位小数。GPA名次越小越靠前。",
+        "type": "spearman",
+        "fields": [
+          "品德自评",
+          "Web前端设计",
+          "高等数学A2",
+          "数据库原理",
+          "GPA排名"
+        ],
+        "figure": {
+          "data": [
+            {
+              "type": "bar",
+              "x": [
+                -0.9799,
+                -0.7825,
+                -0.7641,
+                -0.7461
+              ],
+              "y": [
+                "品德自评",
+                "Web前端设计",
+                "高等数学A2",
+                "数据库原理"
+              ],
+              "orientation": "h"
+            }
+          ],
+          "layout": {
+            "xaxis": {
+              "title": {
+                "text": "Spearman 排序相关"
+              }
+            },
+            "yaxis": {
+              "title": {
+                "text": ""
+              }
+            }
+          }
+        },
+        "sample_notes": [
+          "仅展示聚合统计。关联不表示因果；分位划分不表示合格标准。"
+        ]
+      }
+    ],
+    "columns": [],
+    "insights": [],
+    "recommendations": [
+      "核对量表是否独立采集，以及是否使用了排名或课程成绩打分。",
+      "结合「Web前端设计」的记录口径，访谈不同表现的学生。",
+      "结合「高等数学A2」的记录口径，访谈不同表现的学生。"
+    ],
+    "preview": {
+      "columns": [],
+      "rows": []
+    },
+    "agent": {
+      "mode": "statistical",
+      "model": null,
+      "notes": [
+        "预先计算的公开聚合示例，浏览与下载不创建任务、不调用模型。"
+      ]
+    },
+    "duration_seconds": 0
+  }
+}
